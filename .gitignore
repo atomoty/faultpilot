@@ -1,0 +1,12 @@
+.DS_Store
+.idea/
+.vscode/
+target/
+*.iml
+*.log
+.env
+
+# Internal planning artifacts not published in the documentation release.
+tasks/
+tools/
+*.docx

@@ -1,0 +1,25 @@
+name: docs-check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check required public files
+        run: |
+          test -f README.md
+          test -f README.zh-CN.md
+          test -f docs/en/README.md
+          test -f docs/zh-CN/README.md
+          test -f docs/zh-CN/specification.md
+          test -f LICENSE
+          test -f SECURITY.md
+      - name: Check for retired identifiers
+        run: |
+          ! grep -RInE 'java-aiops|com[.]example[.]aiops|aiops_log_view|aiops_event' \
+            --exclude-dir=.git \
+            --exclude=docs-check.yml .

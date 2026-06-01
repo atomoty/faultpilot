@@ -1,0 +1,24 @@
+name: Bug report
+description: Report an issue with FaultPilot
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: textarea
+    attributes:
+      label: Description
+      description: Describe the problem and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction
+      description: Provide minimal steps and sanitized sample data.
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Sensitive data
+      options:
+        - label: I removed credentials, internal URLs, and real production logs.
+          required: true
