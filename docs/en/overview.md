@@ -20,13 +20,14 @@ Authorized local or remote evidence
 
 Deterministic rules handle redaction, truncation, clustering, thresholds, evidence strength, and fallback reports. AI explains evidence, highlights missing context, proposes hypotheses, and suggests human-verifiable next steps.
 
-## MVP
+## Current MVP
 
 - Local log files and multi-line stack traces.
 - JDBC log tables.
 - Read-only MySQL and PostgreSQL diagnostics.
 - Slow SQL summaries from database statistics.
 - Mock and OpenAI API providers.
+- Experimental local Codex CLI provider.
 - No generated SQL execution and no automated remediation.
 
 For the full reviewed specification, see the [Chinese SSOT](../zh-CN/specification.md).

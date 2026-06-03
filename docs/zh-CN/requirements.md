@@ -335,6 +335,7 @@ Starter 是一个可选的轻量接入 SDK。它运行在 Spring Boot 业务进�
 | --- | --- | --- | --- |
 | `mock` | 开发、测试、无网络演示 | 无需凭据 | 是 |
 | `openai-api` | 正式本地运行和线上部署 | 环境变量注入 API Key | 是 |
+| `codex-cli` | 实验性本地运行 | 本机已有 `codex login` | 是（实验性） |
 
 ### 16.1 OpenAI API 模式
 
@@ -344,7 +345,7 @@ Starter 是一个可选的轻量接入 SDK。它运行在 Spring Boot 业务进�
 
 ### 16.2 Codex CLI 实验性本地设计
 
-- 该模式不进入 MVP，只保留后续实验设计。
+- 该模式在 v0.1.0 中作为实验性本地 provider 提供。
 - 该模式调用本机已安装的 `codex` CLI。
 - 用户通过 Codex CLI 自身提供的登录流程完成 ChatGPT 账号登录。
 - 助手不保存、不复制、不展示 Codex CLI 的账号令牌。

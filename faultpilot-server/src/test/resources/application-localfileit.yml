@@ -1,0 +1,22 @@
+# Test profile for LocalFileDiagnosisIT. Defines the project list entirely in one source so
+# Spring Boot list binding stays consistent; the sample log path is injected via the
+# `sample.log.path` property set by @DynamicPropertySource.
+faultpilot:
+  mode: mock
+  ai:
+    provider: mock
+  ingestion:
+    require-token: true
+  projects:
+    - id: logfile-it
+      display-name: Logfile IT
+      integration-level: L1
+      environments:
+        - local
+      max-query-hours: 168
+      max-results: 500
+      logs:
+        type: local-file
+        zone: UTC
+        paths:
+          - ${sample.log.path}

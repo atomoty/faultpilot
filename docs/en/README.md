@@ -2,7 +2,7 @@
 
 # FaultPilot Documentation
 
-FaultPilot is currently in the planning stage. The reviewed Chinese SSOT is the authoritative specification. English documentation will expand alongside implementation.
+FaultPilot is in early implementation. The current `v0.1.0` code provides a runnable Mock-mode diagnosis flow, local log-file analysis, JDBC log-table analysis, read-only MySQL/PostgreSQL diagnostics, OpenAI API diagnosis, an experimental local Codex CLI provider, and a built-in browser test console. The reviewed Chinese SSOT remains the authoritative target-MVP specification.
 
 ## English
 

@@ -219,7 +219,7 @@ MVP 固定协议但不要求实现 Starter SDK。服务端可以复用事件写�
 
 - 实现 OpenAI API HTTP 客户端。
 - 实现 `openai-api` 配置模式。
-- 记录实验性本地 `codex-cli` 设计，但不纳入 MVP 编码和验收。
+- 实现实验性本地 `codex-cli` provider，默认禁用且仅用于本地。
 - 固定模型输入和输出 JSON Schema。
 - 实现 12,000 tokens 上下文预算、采样和截断统计。
 - 模型调用默认超时 35 秒。

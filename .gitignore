@@ -5,6 +5,7 @@ target/
 *.iml
 *.log
 .env
+.codegraph/
 
 # Internal planning artifacts not published in the documentation release.
 tasks/

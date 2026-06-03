@@ -3,6 +3,9 @@
 Version: V1.6
 Date: 2026-06-01
 
+> This document describes the target repository design. For capabilities available in the current
+> `v0.1.0` development build, see [Build, Run, and Verify](getting-started.md).
+
 ## Repository Positioning
 
 Repository name:
@@ -67,9 +70,9 @@ codex login
 codex login status
 ```
 
-The assistant invokes local `codex exec`. It does not read, copy, or expose Codex authentication files. This mode is local-only and is not a generic OAuth flow for server deployments.
+The assistant invokes local `codex exec`. It does not read, copy, or expose Codex authentication files. This mode is available in v0.1.0 as an experimental local-only provider and is not a generic OAuth flow for server deployments.
 
-This mode is not part of the MVP. Users must verify that their use complies with the applicable OpenAI terms.
+Users must verify that their use complies with the applicable OpenAI terms.
 
 ## Release Checklist
 

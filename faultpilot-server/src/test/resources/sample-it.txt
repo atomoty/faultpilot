@@ -1,0 +1,5 @@
+2026-06-01 10:05:31.501 ERROR [http-nio-8080-exec-5] com.example.order.OrderService - Create order failed
+java.lang.NullPointerException: order is null
+	at com.example.order.OrderService.create(OrderService.java:88)
+	at com.example.order.OrderController.create(OrderController.java:42)
+2026-06-01 10:12:05.410 INFO  [scheduler-1] com.example.Health - ok

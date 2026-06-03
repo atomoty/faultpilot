@@ -43,11 +43,11 @@
 
 原因：优先验证证据采集、规则分析和 AI 报告链路。
 
-## ADR-006：MVP 只正式支持 OpenAI API
+## ADR-006：MVP 正式支持 OpenAI API，实验性支持本地 Codex CLI
 
 状态：Accepted
 
-决策：正式模型接入使用 API Key。`codex-cli` 仅保留实验性本地设计，不进入 MVP DoD。
+决策：正式本地运行和线上部署使用 API Key。`codex-cli` 在 v0.1.0 中作为实验性本地 provider 提供，默认禁用，不用于服务器或容器。
 
 原因：Codex 官方定位为编码代理。官方没有明确说明个人 Codex 登录态可作为第三方通用排障后端自动化调用。
 

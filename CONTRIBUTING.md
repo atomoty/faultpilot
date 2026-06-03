@@ -1,6 +1,6 @@
 # Contributing to FaultPilot
 
-FaultPilot is currently in the planning stage. Contributions should keep the MVP narrow and preserve the read-only security boundary.
+FaultPilot is in early implementation. Contributions should keep the MVP narrow and preserve the read-only security boundary.
 
 ## Before Opening a Pull Request
 
@@ -8,7 +8,7 @@ FaultPilot is currently in the planning stage. Contributions should keep the MVP
 2. Avoid adding generated SQL execution, remote shell access, or automated remediation.
 3. Do not commit real logs, credentials, internal domains, or IP addresses.
 4. Update both English and Chinese navigation when adding documentation.
-5. Run the documentation and secret checks.
+5. Run `mvn -B clean verify`, then run the documentation and secret checks.
 
 ## Commit Style
 
