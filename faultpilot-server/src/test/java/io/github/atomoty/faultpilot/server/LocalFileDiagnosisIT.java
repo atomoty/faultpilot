@@ -34,7 +34,7 @@ class LocalFileDiagnosisIT {
     @DynamicPropertySource
     static void registerSampleLogPath(DynamicPropertyRegistry registry) {
         // The localfileit profile defines the project list; only the absolute sample path is dynamic.
-        Path sample = Path.of("src/test/resources/sample-it.log").toAbsolutePath();
+        Path sample = Path.of("src/test/resources/sample-it.txt").toAbsolutePath();
         registry.add("sample.log.path", sample::toString);
     }
 
