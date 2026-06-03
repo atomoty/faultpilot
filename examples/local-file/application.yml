@@ -1,0 +1,21 @@
+# Minimal FaultPilot configuration for the local-file log source example.
+# Start with: mvn -pl faultpilot-server spring-boot:run \
+#   --spring.config.additional-location=file:examples/local-file/application.yml
+faultpilot:
+  mode: mock
+  ai:
+    provider: mock
+  projects:
+    - id: local-file-demo
+      display-name: Local File Demo
+      integration-level: L1
+      environments:
+        - local
+      max-query-hours: 168
+      max-results: 500
+      logs:
+        type: local-file
+        # Sample timestamps are +08:00 local time; pin the zone for reproducibility across hosts.
+        zone: Asia/Shanghai
+        paths:
+          - examples/local-file/sample-app.log

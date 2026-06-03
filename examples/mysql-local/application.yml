@@ -1,0 +1,28 @@
+# FaultPilot configuration for read-only MySQL analysis.
+#   mvn -pl faultpilot-server spring-boot:run \
+#     --spring.config.additional-location=file:examples/mysql-local/application.yml
+#
+# Requires the MySQL JDBC driver on the classpath (add com.mysql:mysql-connector-j; FaultPilot
+# bundles only H2). Point url/credentials at the read-only account from readonly-account.sql.
+faultpilot:
+  mode: mock
+  ai:
+    provider: mock
+  ingestion:
+    require-token: true
+  projects:
+    - id: mysql-local
+      display-name: MySQL Local (read-only)
+      integration-level: L3
+      environments:
+        - local
+      max-query-hours: 24
+      max-results: 500
+      database:
+        type: mysql
+        url: ${FAULTPILOT_MYSQL_URL}          # e.g. jdbc:mysql://localhost:3306/app
+        username: ${FAULTPILOT_MYSQL_USER}     # faultpilot_ro
+        password: ${FAULTPILOT_MYSQL_PASSWORD}
+        long-tx-threshold: 30s
+        connect-timeout-ms: 2000
+        query-timeout-ms: 3000

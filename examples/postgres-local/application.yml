@@ -1,0 +1,28 @@
+# FaultPilot configuration for read-only PostgreSQL analysis.
+#   mvn -pl faultpilot-server spring-boot:run \
+#     --spring.config.additional-location=file:examples/postgres-local/application.yml
+#
+# Requires the PostgreSQL JDBC driver on the classpath (add org.postgresql:postgresql; FaultPilot
+# bundles only H2). Point url/credentials at the read-only role from readonly-account.sql.
+faultpilot:
+  mode: mock
+  ai:
+    provider: mock
+  ingestion:
+    require-token: true
+  projects:
+    - id: postgres-local
+      display-name: PostgreSQL Local (read-only)
+      integration-level: L3
+      environments:
+        - local
+      max-query-hours: 24
+      max-results: 500
+      database:
+        type: postgres
+        url: ${FAULTPILOT_PG_URL}            # e.g. jdbc:postgresql://localhost:5432/app
+        username: ${FAULTPILOT_PG_USER}       # faultpilot_ro
+        password: ${FAULTPILOT_PG_PASSWORD}
+        long-tx-threshold: 30s
+        connect-timeout-ms: 2000
+        query-timeout-ms: 3000

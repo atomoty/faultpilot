@@ -747,9 +747,9 @@ faultpilot:
 
 API Key 必须通过环境变量或密钥管理系统注入。
 
-### 20.5 Codex CLI 实验性本地设计
+### 20.5 Codex CLI 实验性本地模式
 
-Codex CLI 模式不进入 MVP。它仅作为后续实验性扩展设计，复用开发机上已经登录的 Codex CLI：
+Codex CLI 模式在 v0.1.0 中作为实验性本地 provider 提供，复用开发机上已经登录的 Codex CLI：
 
 ```bash
 codex login
@@ -780,7 +780,7 @@ CodexCliDiagnosisModel
 约束：
 
 - 仅允许在本地 profile 启用。
-- 默认禁用，不进入 MVP Definition of Done。
+- 默认禁用，不用于线上部署。
 - 不读取或复制 Codex CLI 的认证文件。
 - 不把 Codex 登录令牌传入容器、服务器或远程服务。
 - 独立部署必须使用 `openai-api` 模式。

@@ -1,0 +1,21 @@
+# Test profile for JdbcLogDiagnosisIT. Defines a single jdbc-backed project; the H2 URL is injected
+# via the `jdbc.it.url` property set by @DynamicPropertySource.
+faultpilot:
+  mode: mock
+  ai:
+    provider: mock
+  ingestion:
+    require-token: true
+  projects:
+    - id: jdbc-it
+      display-name: JDBC IT
+      integration-level: L1
+      environments:
+        - local
+      max-query-hours: 168
+      max-results: 500
+      logs:
+        type: jdbc
+        url: ${jdbc.it.url}
+        view: faultpilot_log_view
+        zone: UTC

@@ -1,0 +1,33 @@
+# FaultPilot configuration for the JDBC log-table source example.
+#
+# Start an H2 TCP server preloaded with examples/jdbc-log-table/schema.sql, then run:
+#   mvn -pl faultpilot-server spring-boot:run \
+#     --spring.config.additional-location=file:examples/jdbc-log-table/application.yml
+#
+# For other databases, add the JDBC driver to the classpath and point `url`/`username`/`password`
+# at a READ-ONLY account that can SELECT the view. The view must expose the canonical columns:
+#   occurred_at, level, trace_id, message, stack_trace
+faultpilot:
+  mode: mock
+  ai:
+    provider: mock
+  ingestion:
+    require-token: true
+  projects:
+    - id: jdbc-demo
+      display-name: JDBC Log Table Demo
+      integration-level: L1
+      environments:
+        - local
+      max-query-hours: 168
+      max-results: 500
+      logs:
+        type: jdbc
+        url: ${FAULTPILOT_DEMO_DB_URL}
+        username: ${FAULTPILOT_DEMO_DB_USER:}
+        password: ${FAULTPILOT_DEMO_DB_PASSWORD:}
+        view: faultpilot_log_view
+        # Sample timestamps are +08:00 local time; pin the zone for reproducibility.
+        zone: Asia/Shanghai
+        connect-timeout-ms: 2000
+        query-timeout-ms: 3000

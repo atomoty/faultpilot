@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FaultPilot Test Console</title>
+  <style>
+    :root { font-family: Inter, system-ui, sans-serif; color: #18212f; background: #eef2f7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; border-radius: 8px; cursor: pointer; padding: 10px 16px; }
+    button:disabled { cursor: wait; opacity: .65; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: 30px; }
+    h2 { margin-bottom: 16px; font-size: 19px; }
+    h3 { margin-bottom: 8px; font-size: 15px; }
+    label { display: grid; gap: 6px; color: #46556d; font-size: 13px; font-weight: 650; }
+    input, select, textarea { width: 100%; border: 1px solid #cfd8e4; border-radius: 8px; background: #fff; color: #18212f; padding: 10px; }
+    textarea { min-height: 104px; resize: vertical; }
+    pre { max-height: 480px; overflow: auto; border-radius: 8px; background: #101827; color: #d5e0ef; font-size: 12px; line-height: 1.5; padding: 14px; white-space: pre-wrap; }
+    summary { cursor: pointer; font-weight: 700; }
+    .page { max-width: 1240px; margin: 0 auto; padding: 28px 20px 48px; }
+    .header, .panel { border: 1px solid #d9e1eb; border-radius: 14px; background: #fff; box-shadow: 0 10px 28px rgba(36, 49, 69, .07); }
+    .header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; padding: 24px; margin-bottom: 18px; }
+    .eyebrow { margin-bottom: 6px; color: #3164ba; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+    .muted { color: #65738a; font-size: 13px; line-height: 1.55; }
+    .health { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #a2adbd; }
+    .dot.ok { background: #1eaa6a; }
+    .dot.error { background: #d44c4c; }
+    .grid { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(420px, 1.4fr); gap: 18px; align-items: start; }
+    .panel { padding: 20px; }
+    form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    .actions { display: flex; justify-content: flex-end; gap: 10px; }
+    .primary { background: #245ec9; color: #fff; }
+    .secondary { background: #edf2f8; color: #31445f; }
+    .message { min-height: 20px; margin: 14px 0 0; color: #65738a; font-size: 13px; }
+    .message.error { color: #b62e2e; }
+    .report-empty { border: 1px dashed #cbd5e1; border-radius: 10px; color: #6c7a90; padding: 28px 18px; text-align: center; }
+    .report-section { margin-top: 18px; }
+    .card { border: 1px solid #dde5ef; border-radius: 10px; margin-top: 10px; padding: 12px; }
+    .card p { margin-bottom: 6px; color: #3d4b61; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+    .tag { display: inline-block; border-radius: 999px; background: #e8f0ff; color: #245ec9; font-size: 11px; font-weight: 700; margin-left: 8px; padding: 3px 8px; vertical-align: 1px; }
+    .raw { margin-top: 18px; }
+    @media (max-width: 860px) { .header { display: block; } .health { margin-top: 18px; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <div>
+      <p class="eyebrow">FAULTPILOT / LOCAL MOCK MODE</p>
+      <h1>FaultPilot Test Console</h1>
+      <p class="muted">Run the built-in diagnosis scenario without manually sending API requests.</p>
+    </div>
+    <div class="health">
+      <span id="healthDot" class="dot"></span><span id="healthText" class="muted">Checking server...</span>
+      <button id="refreshButton" class="secondary" type="button">Refresh</button>
+    </div>
+  </header>
+  <main class="grid">
+    <section class="panel">
+      <h2>Run a diagnosis</h2>
+      <form id="diagnosisForm">
+        <label>Project<select id="projectId" required></select></label>
+        <label>Environment<select id="environment" required></select></label>
+        <label>From<input id="from" type="datetime-local" required></label>
+        <label>To<input id="to" type="datetime-local" required></label>
+        <label class="full">Question<textarea id="question" required></textarea></label>
+        <div class="actions full">
+          <button id="demoButton" class="secondary" type="button">Load Mock Demo</button>
+          <button id="runButton" class="primary" type="submit">Run Diagnosis</button>
+        </div>
+      </form>
+      <p id="formMessage" class="message"></p>
+      <p class="muted">This console is for local verification. Review security configuration before exposing the server on a network.</p>
+    </section>
+    <section class="panel">
+      <h2>Diagnosis report</h2>
+      <div id="report"><div class="report-empty">Run the mock demo to view the diagnosis report.</div></div>
+    </section>
+  </main>
+  <section class="panel raw"><details><summary>Raw JSON response</summary><pre id="rawJson">{}</pre></details></section>
+</div>
+<script>
+  const mockDemo = {projectId: "order-service", environment: "local", from: "2026-06-01T01:00:00Z", to: "2026-06-01T03:00:00Z", question: "Why is the order API slow?"};
+  const ids = ["healthDot", "healthText", "refreshButton", "diagnosisForm", "projectId", "environment", "from", "to", "question", "demoButton", "runButton", "formMessage", "report", "rawJson"];
+  const elements = Object.fromEntries(ids.map((id) => [id === "diagnosisForm" ? "form" : id, document.getElementById(id)]));
+  let projects = [];
+
+  function toLocalInput(date) {
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  }
+  // Default query window: the last 2 hours (To = now, From = now - 2h).
+  function setDefaultRange() {
+    const now = new Date();
+    elements.to.value = toLocalInput(now);
+    elements.from.value = toLocalInput(new Date(now.getTime() - 2 * 60 * 60 * 1000));
+  }
+  function localDateTime(value) {
+    return toLocalInput(new Date(value));
+  }
+  function createElement(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  async function request(url, options) {
+    const response = await fetch(url, options);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message || body.error || "Request failed with HTTP " + response.status);
+    return body;
+  }
+  function setMessage(text, error) {
+    elements.formMessage.textContent = text;
+    elements.formMessage.className = error ? "message error" : "message";
+  }
+  async function refreshHealth() {
+    elements.healthDot.className = "dot";
+    elements.healthText.textContent = "Checking server...";
+    try {
+      const health = await request("/actuator/health");
+      elements.healthDot.className = health.status === "UP" ? "dot ok" : "dot error";
+      elements.healthText.textContent = "Server " + health.status;
+    } catch (error) {
+      elements.healthDot.className = "dot error";
+      elements.healthText.textContent = "Server unavailable";
+    }
+  }
+  function renderEnvironments(project) {
+    elements.environment.replaceChildren();
+    (project ? project.environments : []).forEach((environment) => {
+      const option = createElement("option", null, environment);
+      option.value = environment;
+      elements.environment.append(option);
+    });
+  }
+  async function refreshProjects() {
+    projects = await request("/api/v1/projects");
+    elements.projectId.replaceChildren();
+    projects.forEach((project) => {
+      const option = createElement("option", null, project.displayName + " (" + project.id + ")");
+      option.value = project.id;
+      elements.projectId.append(option);
+    });
+    renderEnvironments(projects[0]);
+  }
+  // Select the first available project (or the mock one if present) without touching the time range.
+  function selectDefaultProject() {
+    const project = projects.find((item) => item.id === mockDemo.projectId) || projects[0];
+    if (project) {
+      elements.projectId.value = project.id;
+      renderEnvironments(project);
+      elements.environment.value = project.environments.includes(mockDemo.environment) ? mockDemo.environment : project.environments[0];
+    }
+  }
+  function loadMockDemo() {
+    const project = projects.find((item) => item.id === mockDemo.projectId);
+    if (project) {
+      elements.projectId.value = project.id;
+      renderEnvironments(project);
+      elements.environment.value = project.environments.includes(mockDemo.environment) ? mockDemo.environment : project.environments[0];
+      elements.from.value = localDateTime(mockDemo.from);
+      elements.to.value = localDateTime(mockDemo.to);
+      elements.question.value = mockDemo.question;
+      setMessage("Mock scenario loaded.", false);
+    } else {
+      setMessage("Mock project 'order-service' is not registered.", true);
+    }
+  }
+  function addSection(title) {
+    const section = createElement("div", "report-section");
+    section.append(createElement("h3", null, title));
+    elements.report.append(section);
+    return section;
+  }
+  function appendCards(section, items, formatter) {
+    items.forEach((item) => {
+      const card = createElement("div", "card");
+      formatter(card, item);
+      section.append(card);
+    });
+  }
+  function renderReport(report) {
+    elements.report.replaceChildren();
+    addSection("Summary").append(createElement("p", "muted", report.summary || "No summary returned."));
+    appendCards(addSection("Root cause candidates"), report.rootCauseCandidates || [], (card, cause) => {
+      const heading = createElement("h3", null, cause.title || "Untitled candidate");
+      if (cause.strength) heading.append(createElement("span", "tag", cause.strength));
+      card.append(heading, createElement("p", null, cause.explanation || ""));
+      if (cause.evidenceIds && cause.evidenceIds.length) card.append(createElement("p", "muted", "Evidence: " + cause.evidenceIds.join(", ")));
+    });
+    appendCards(addSection("Timeline"), report.timeline || [], (card, entry) => card.append(createElement("h3", null, entry.at || "Unknown time"), createElement("p", null, entry.description || "")));
+    appendCards(addSection("Evidence"), report.evidence || [], (card, item) => card.append(createElement("h3", null, (item.evidenceId || "Evidence") + " / " + (item.type || "UNKNOWN")), createElement("p", null, item.description || "")));
+    appendCards(addSection("Recommended actions"), report.recommendedActions || [], (card, action) => card.append(createElement("p", null, action)));
+    if (report.disclaimer) addSection("Disclaimer").append(createElement("p", "muted", report.disclaimer));
+    if ((report.unavailableSources || []).length) addSection("Unavailable sources").append(createElement("p", "muted", report.unavailableSources.join(", ")));
+    elements.rawJson.textContent = JSON.stringify(report, null, 2);
+  }
+  async function runDiagnosis(event) {
+    event.preventDefault();
+    elements.runButton.disabled = true;
+    setMessage("Running diagnosis...", false);
+    try {
+      const report = await request("/api/v1/diagnoses", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({
+        projectId: elements.projectId.value, environment: elements.environment.value,
+        from: new Date(elements.from.value).toISOString(), to: new Date(elements.to.value).toISOString(), question: elements.question.value
+      })});
+      renderReport(report);
+      setMessage("Diagnosis completed.", false);
+    } catch (error) {
+      setMessage(error.message, true);
+    } finally {
+      elements.runButton.disabled = false;
+    }
+  }
+  elements.form.addEventListener("submit", runDiagnosis);
+  elements.demoButton.addEventListener("click", loadMockDemo);
+  // Refresh re-checks health/projects and re-selects the project, but keeps the user's time range.
+  elements.refreshButton.addEventListener("click", async () => { await Promise.allSettled([refreshHealth(), refreshProjects()]); selectDefaultProject(); });
+  elements.projectId.addEventListener("change", () => renderEnvironments(projects.find((project) => project.id === elements.projectId.value)));
+  // On load: default to the last 2 hours so queries cover recent logs, and select a project.
+  setDefaultRange();
+  Promise.allSettled([refreshHealth(), refreshProjects()]).then(selectDefaultProject);
+</script>
+</body>
+</html>
