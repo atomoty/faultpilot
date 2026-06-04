@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Verifies a database health snapshot is threaded into the report as DB_HEALTH evidence + timeline.
  * Uses a stub {@link DatabaseHealthSourceAdapter} (no real database) to validate the wiring.
  */
-@SpringBootTest
+@SpringBootTest(properties = "faultpilot.ai.provider=mock")
 @AutoConfigureMockMvc
 class DatabaseHealthEvidenceIT {
 

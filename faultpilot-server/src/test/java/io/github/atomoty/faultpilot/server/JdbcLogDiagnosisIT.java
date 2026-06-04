@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * End-to-end JDBC log-table diagnosis (development-plan.md §6.3): a project configured with
  * {@code logs.type=jdbc} reads a read-only view and the report contains the parsed exception cluster.
  */
-@SpringBootTest
+@SpringBootTest(properties = "faultpilot.ai.provider=mock")
 @AutoConfigureMockMvc
 @ActiveProfiles("jdbcit")
 class JdbcLogDiagnosisIT {

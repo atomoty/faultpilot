@@ -91,9 +91,14 @@ curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/v1/projects
 ```
 
-在浏览器中打开内置测试页面：
+在浏览器中打开内置控制台页面：
 
 [http://localhost:8080/](http://localhost:8080/)
+
+选择项目与环境后点击 **Run Diagnosis**（或点 **Load Mock Demo** 预填内置场景）。生成报告期间，
+页面会显示「AI is analyzing collected evidence」加载状态。Mock 模式几乎瞬间返回；使用
+`openai-api` 或 `codex-cli` 时，真实模型调用可能耗时数十秒，请保持页面打开直到报告渲染完成。
+底部可折叠区域提供原始 JSON 响应。
 
 运行内置的本地慢 SQL 场景：
 
@@ -115,33 +120,80 @@ curl -X POST http://localhost:8080/api/v1/diagnoses \
 
 ## AI 提供方
 
-`faultpilot.ai.provider` 决定报告如何生成。任何提供方失败（网络、超时、非法输出）都会回退为规则降级报告，请求不会失败。
+`FAULTPILOT_AI_PROVIDER` 决定报告如何生成。配置从环境变量读取（直接 `export` 即可，见下方示例）；每个变量都有默认值，未设置即用默认。任何提供方失败（网络、超时、非法输出）都会回退为规则降级报告，请求不会失败。（命令行 flag 如 `--faultpilot.ai.provider=...` 仍可覆盖环境变量。）
+
+| 变量 | 默认值 | 用于 |
+| --- | --- | --- |
+| `FAULTPILOT_AI_PROVIDER` | `mock` | 选择提供方（`mock` / `openai-api` / `codex-cli`） |
+| `OPENAI_API_KEY` | _(空)_ | `openai-api`（必填） |
+| `OPENAI_MODEL` | _(空)_ | `openai-api`（必填；需支持 json_schema） |
+| `OPENAI_BASE_URL` | `https://api.openai.com` | `openai-api`（可选；兼容网关） |
+| `OPENAI_TIMEOUT` | `35s` | `openai-api`（可选） |
+| `FAULTPILOT_CODEX_COMMAND` / `FAULTPILOT_CODEX_MODEL` / `FAULTPILOT_CODEX_TIMEOUT` | `codex` / _(空)_ / `120s` | `codex-cli`（可选） |
+| `FAULTPILOT_DB_URL` / `FAULTPILOT_DB_USER` / `FAULTPILOT_DB_PASSWORD` | _(空)_ | 某项目的 `logs(type: jdbc)` 或 `database` 块 |
+| `FAULTPILOT_INGEST_TOKEN` | _(空)_ | `faultpilot.ingestion.tokens` |
 
 - **`mock`**（默认）：确定性、无网络，用于演示和测试。
 - **`openai-api`**：通过 OpenAI API 真实诊断，环境变量配置：
   ```bash
+  export FAULTPILOT_AI_PROVIDER=openai-api
   export OPENAI_API_KEY=sk-...
   export OPENAI_MODEL=gpt-4o-mini        # 需支持 json_schema 响应格式的模型
-  mvn -pl faultpilot-server spring-boot:run --faultpilot.ai.provider=openai-api
+  mvn -pl faultpilot-server spring-boot:run
   ```
-  `base-url` 可指向兼容网关（`faultpilot.ai.base-url`）。API Key 仅放入 Authorization 头，不写日志。
+  `OPENAI_BASE_URL` 可指向兼容网关。API Key 仅放入 Authorization 头，不写日志。
 - **`codex-cli`**（实验性、仅本地）：复用本机已登录的 Codex CLI。
   ```bash
   codex login            # 由你自己执行一次
-  mvn -pl faultpilot-server spring-boot:run --faultpilot.ai.provider=codex-cli
+  export FAULTPILOT_AI_PROVIDER=codex-cli
+  mvn -pl faultpilot-server spring-boot:run
   ```
   助手只在只读沙箱中调用 `codex exec`；不执行 `codex login`，也不读取/复制/打印 Codex 凭据文件。
   **线上部署不要启用 `codex-cli`**，线上请用带 Key 的 `openai-api`。
 
 模型只会拿到已脱敏的证据上下文，根因证据强度由规则计算，不由模型决定。
 
-## Java 项目需要准备什么
+## 接入一个 Java 项目
 
-MVP 计划支持不嵌入 SDK 的接入方式：
+FaultPilot 不嵌入 SDK 即可分析应用。默认的
+[`application.yml`](../../faultpilot-server/src/main/resources/application.yml) 只带 mock 演示项目；要接真实应用，
+在 `faultpilot.projects` 下新增一个项目，按需组合多种证据源——每次诊断会一起采集。日志源通过 `logs.type`
+**三选一**（`local-file` | `jdbc` | `mock`），并可在同一个项目上额外加一个 `database` 块做只读数据库分析：
+日志与数据库是**可叠加**的，不是二选一。
 
-1. 将应用日志写入 FaultPilot 可读取的本地文件，或提供只读 JDBC 日志表。
-2. 如需数据库诊断，为 MySQL 或 PostgreSQL 创建专用只读账号。
-3. 如需慢 SQL 汇总，确保数据库慢查询统计能力已启用。
-4. 生产数据发送给模型前，复查脱敏后的 AI 请求内容。
+| 接入方式 | 被监控应用需准备 | 必填字段 | 说明 |
+| --- | --- | --- | --- |
+| **本地日志文件**（[示例](../../examples/local-file/README.md)） | FaultPilot 所在主机上一个可读的日志文件 | `logs.type: local-file`、`logs.paths` | 默认解析器识别 Spring Boot 控制台格式；仅当布局不同才需配 `logs.pattern`。只分析 `WARN`/`ERROR` 行。 |
+| **JDBC 日志表**（[示例](../../examples/jdbc-log-table/README.md)） | 一个**只读**数据库视图，列为 `occurred_at, level, trace_id, message, stack_trace` | `logs.type: jdbc`、`logs.url`、`logs.username`、`logs.password`、`logs.view` | 需将对应数据库的 JDBC 驱动加入 classpath（仅内置 H2）。 |
+| **只读数据库**（[MySQL](../../examples/mysql-local/README.md) / [PostgreSQL](../../examples/postgres-local/README.md)） | 一个专用的**只读** MySQL/PostgreSQL 账号 | `database.type`（`mysql`\|`postgres`）、`database.url`、`database.username`、`database.password` | 通过内置固定 SQL 采集连接数 / 长事务 / 锁等待快照与慢 SQL 摘要。需慢 SQL 摘要时，确保慢查询统计已启用。 |
+
+示例：一个项目同时读取本地日志文件**和**只读 MySQL 数据库。凭据用环境变量（`FAULTPILOT_DB_*`）；每个字段都对应 `FaultPilotProperties`。
+
+```yaml
+faultpilot:
+  projects:
+    - id: my-app
+      display-name: My App
+      integration-level: L2
+      environments: [local]
+      max-query-hours: 168
+      max-results: 500
+      logs:                                    # 日志源三选一:local-file | jdbc | mock
+        type: local-file
+        zone: Asia/Shanghai                    # 无时区偏移的时间戳按此解释
+        paths:
+          - /absolute/path/to/your-app/error.log
+        # 仅当日志格式与 Spring Boot 控制台格式不同时才设 `pattern`
+      database:                                # 可选 —— 只读 MySQL/PostgreSQL
+        type: mysql                            # mysql | postgres
+        url: ${FAULTPILOT_DB_URL}              # 例:jdbc:mysql://localhost:3306/app
+        username: ${FAULTPILOT_DB_USER}        # 只读账号
+        password: ${FAULTPILOT_DB_PASSWORD}
+        long-tx-threshold: 30s
+```
+
+JDBC 日志表与 PostgreSQL 的写法见 `examples/` 下的可运行示例。所有接入方式均使用只读访问、固定参数化 SQL、时间范围与最大条数限制以及证据脱敏。生产数据发送给模型提供方前，请复查脱敏后的 AI 请求内容。
+
+**下一版本（不在 v0.1.0 范围）：** 用于推送式接入的 Spring Boot Starter、接入向导页面，以及标准化的指标 / Trace / 发布事件接入能力。
 
 完整范围以 [统一规格 SSOT](specification.md) 为准。

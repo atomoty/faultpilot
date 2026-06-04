@@ -13,13 +13,12 @@ management:
       exposure:
         include: health
 
+# Mock mode, runs out of the box. AI providers and log/DB integration: see docs/getting-started.
 faultpilot:
   mode: mock
   ai:
-    provider: mock
+    provider: ${FAULTPILOT_AI_PROVIDER:mock}
   ingestion:
-    # Secure by default. Local-only event-ingestion demos may explicitly override this with:
-    # --faultpilot.ingestion.require-token=false
     require-token: true
   projects:
     - id: order-service
@@ -32,20 +31,3 @@ faultpilot:
       max-results: 500
       logs:
         type: mock
-    # Real local logs (cdh-mall). Layout differs from Logback default: thread comes BEFORE level and
-    # there is an MDC '[]' slot, e.g.
-    #   2026-06-03 09:55:55.313 [pool-1-thread-1] [] ERROR c.c.h...Cache - message
-    # so a custom `pattern` is supplied. ANSI color codes are stripped automatically.
-    - id: local-cdh
-      display-name: CDH Mall (local logs)
-      integration-level: L1
-      environments:
-        - local
-      max-query-hours: 168
-      max-results: 500
-      logs:
-        type: local-file
-        zone: Asia/Shanghai
-        pattern: '^(?<ts>\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}[.,]\d{3})\s+\[(?<thread>[^\]]+)\]\s+(?:\[[^\]]*\]\s+)?(?<level>TRACE|DEBUG|INFO|WARN|ERROR)\s+(?<logger>[\w$.]+)\s*-\s*(?<msg>.*)$'
-        paths:
-          - /Users/abin/Downloads/idea-log/cdh-mall/error.log
