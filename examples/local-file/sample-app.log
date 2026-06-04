@@ -1,0 +1,29 @@
+2026-06-01 09:58:01.102 INFO  [http-nio-8080-exec-1] com.example.order.OrderController - Received create order request
+2026-06-01 09:58:01.230 INFO  [http-nio-8080-exec-1] com.example.order.OrderService - Order persisted id=1001
+2026-06-01 10:01:12.044 WARN  [http-nio-8080-exec-3] com.example.order.PaymentClient - Payment gateway slow, took 1840ms
+2026-06-01 10:05:31.501 ERROR [http-nio-8080-exec-5] com.example.order.OrderService - Create order failed
+java.lang.NullPointerException: Cannot invoke "com.example.order.Order.getId()" because "order" is null
+	at com.example.order.OrderService.create(OrderService.java:88)
+	at com.example.order.OrderController.create(OrderController.java:42)
+	at jdk.internal.reflect.GeneratedMethodAccessor1.invoke(Unknown Source)
+2026-06-01 10:05:48.778 ERROR [http-nio-8080-exec-6] com.example.order.OrderService - Create order failed
+java.lang.NullPointerException: Cannot invoke "com.example.order.Order.getId()" because "order" is null
+	at com.example.order.OrderService.create(OrderService.java:88)
+	at com.example.order.OrderController.create(OrderController.java:42)
+2026-06-01 10:06:02.115 ERROR [http-nio-8080-exec-2] com.example.order.OrderService - Create order failed
+java.lang.NullPointerException: Cannot invoke "com.example.order.Order.getId()" because "order" is null
+	at com.example.order.OrderService.create(OrderService.java:88)
+	at com.example.order.OrderController.create(OrderController.java:42)
+2026-06-01 10:06:19.640 ERROR [http-nio-8080-exec-4] com.example.order.OrderService - Create order failed
+java.lang.NullPointerException: Cannot invoke "com.example.order.Order.getId()" because "order" is null
+	at com.example.order.OrderService.create(OrderService.java:88)
+	at com.example.order.OrderController.create(OrderController.java:42)
+2026-06-01 10:06:33.992 ERROR [http-nio-8080-exec-7] com.example.order.OrderService - Create order failed
+java.lang.NullPointerException: Cannot invoke "com.example.order.Order.getId()" because "order" is null
+	at com.example.order.OrderService.create(OrderService.java:88)
+	at com.example.order.OrderController.create(OrderController.java:42)
+2026-06-01 10:06:51.300 ERROR [http-nio-8080-exec-1] com.example.order.OrderService - Create order failed
+java.lang.NullPointerException: Cannot invoke "com.example.order.Order.getId()" because "order" is null
+	at com.example.order.OrderService.create(OrderService.java:88)
+	at com.example.order.OrderController.create(OrderController.java:42)
+2026-06-01 10:12:05.410 INFO  [scheduling-1] com.example.order.HealthReporter - Heartbeat ok

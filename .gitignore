@@ -4,6 +4,7 @@
 target/
 *.iml
 *.log
+!examples/local-file/sample-app.log
 .env
 .codegraph/
 
