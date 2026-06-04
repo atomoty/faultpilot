@@ -35,6 +35,7 @@ class ProjectControllerIT {
 
         mockMvc.perform(get("/index.html"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("FaultPilot Test Console")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("FaultPilot Console")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("AI is analyzing collected evidence")));
     }
 }

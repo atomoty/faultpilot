@@ -30,7 +30,7 @@ FaultPilot 不是完整可观测平台，而是 Java 优先的轻量排障助手
 - AI 诊断方式：`openai-api`(API Key)与实验性本地 `codex-cli`(复用已有 `codex login`)；模型只解释已采集证据，任何失败回退为规则降级报告。
 - 确定性的证据脱敏、日志聚类、关联规则、证据强度和上下文预算。
 - 诊断、报告查询、项目列表、健康检查和 Token 保护的事件写入 REST API。
-- 内置浏览器测试页面。
+- 内置浏览器控制台页面。
 - 模型适配器异常时的规则降级报告。
 
 Spring Boot Starter、Prometheus、Loki、Elasticsearch、OpenTelemetry、Alertmanager 和自动处置明确延后。
@@ -61,7 +61,7 @@ curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/v1/projects
 ```
 
-打开 [http://localhost:8080/](http://localhost:8080/) 即可使用内置测试页面，无需手动发送 API 请求。
+打开 [http://localhost:8080/](http://localhost:8080/) 即可使用内置控制台页面，无需手动发送 API 请求。
 
 只有 `faultpilot-server` 是可独立启动的 Spring Boot 服务。模块说明和完整 Mock 诊断请求见[启动与验证](docs/zh-CN/getting-started.md)。
 

@@ -3,47 +3,83 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FaultPilot Test Console</title>
+  <title>FaultPilot Console</title>
   <style>
-    :root { font-family: Inter, system-ui, sans-serif; color: #18212f; background: #eef2f7; }
+    :root {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #102033;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(59, 130, 246, .18), transparent 30%),
+        radial-gradient(circle at 85% 8%, rgba(20, 184, 166, .14), transparent 34%),
+        linear-gradient(135deg, #f8fbff 0%, #eef6ff 48%, #f8fafc 100%);
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; }
+    body { margin: 0; min-height: 100vh; }
     button, input, select, textarea { font: inherit; }
-    button { border: 0; border-radius: 8px; cursor: pointer; padding: 10px 16px; }
+    button { border: 0; border-radius: 12px; cursor: pointer; padding: 11px 16px; transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease; }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
     button:disabled { cursor: wait; opacity: .65; }
     h1, h2, h3, p { margin-top: 0; }
-    h1 { margin-bottom: 8px; font-size: 30px; }
-    h2 { margin-bottom: 16px; font-size: 19px; }
-    h3 { margin-bottom: 8px; font-size: 15px; }
-    label { display: grid; gap: 6px; color: #46556d; font-size: 13px; font-weight: 650; }
-    input, select, textarea { width: 100%; border: 1px solid #cfd8e4; border-radius: 8px; background: #fff; color: #18212f; padding: 10px; }
+    h1 { margin-bottom: 10px; font-size: clamp(32px, 5vw, 52px); line-height: 1; letter-spacing: -.04em; }
+    h2 { margin-bottom: 18px; font-size: 18px; letter-spacing: -.01em; }
+    h3 { margin-bottom: 8px; font-size: 14px; }
+    label { display: grid; gap: 7px; color: #56677f; font-size: 12px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d8e3f0;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .86);
+      color: #102033;
+      outline: none;
+      padding: 12px;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(14, 165, 233, .16); background: #fff; }
     textarea { min-height: 104px; resize: vertical; }
-    pre { max-height: 480px; overflow: auto; border-radius: 8px; background: #101827; color: #d5e0ef; font-size: 12px; line-height: 1.5; padding: 14px; white-space: pre-wrap; }
+    pre { max-height: 480px; overflow: auto; border-radius: 12px; background: #0f172a; color: #dbeafe; font-size: 12px; line-height: 1.5; padding: 14px; white-space: pre-wrap; }
     summary { cursor: pointer; font-weight: 700; }
-    .page { max-width: 1240px; margin: 0 auto; padding: 28px 20px 48px; }
-    .header, .panel { border: 1px solid #d9e1eb; border-radius: 14px; background: #fff; box-shadow: 0 10px 28px rgba(36, 49, 69, .07); }
-    .header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; padding: 24px; margin-bottom: 18px; }
-    .eyebrow { margin-bottom: 6px; color: #3164ba; font-size: 12px; font-weight: 700; letter-spacing: .08em; }
-    .muted { color: #65738a; font-size: 13px; line-height: 1.55; }
+    .page { max-width: 1280px; margin: 0 auto; padding: 34px 22px 54px; }
+    .header, .panel {
+      border: 1px solid rgba(148, 163, 184, .26);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .82);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .10);
+      backdrop-filter: blur(18px);
+    }
+    .header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; padding: 30px; margin-bottom: 20px; overflow: hidden; position: relative; }
+    .header:after { content: ""; position: absolute; right: -70px; top: -80px; width: 260px; height: 260px; border-radius: 999px; background: rgba(14, 165, 233, .16); filter: blur(10px); }
+    .eyebrow { margin-bottom: 10px; color: #0284c7; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    .muted { color: #66758a; font-size: 13px; line-height: 1.65; }
     .health { display: flex; gap: 10px; align-items: center; white-space: nowrap; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: #a2adbd; }
-    .dot.ok { background: #1eaa6a; }
-    .dot.error { background: #d44c4c; }
-    .grid { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(420px, 1.4fr); gap: 18px; align-items: start; }
-    .panel { padding: 20px; }
-    form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #64748b; box-shadow: 0 0 0 5px rgba(100, 116, 139, .12); }
+    .dot.ok { background: #22c55e; box-shadow: 0 0 0 5px rgba(34, 197, 94, .13); }
+    .dot.error { background: #ef4444; box-shadow: 0 0 0 5px rgba(239, 68, 68, .13); }
+    .grid { display: grid; grid-template-columns: minmax(330px, .86fr) minmax(440px, 1.42fr); gap: 20px; align-items: start; }
+    .panel { padding: 22px; }
+    form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; }
     .full { grid-column: 1 / -1; }
     .actions { display: flex; justify-content: flex-end; gap: 10px; }
-    .primary { background: #245ec9; color: #fff; }
-    .secondary { background: #edf2f8; color: #31445f; }
-    .message { min-height: 20px; margin: 14px 0 0; color: #65738a; font-size: 13px; }
-    .message.error { color: #b62e2e; }
-    .report-empty { border: 1px dashed #cbd5e1; border-radius: 10px; color: #6c7a90; padding: 28px 18px; text-align: center; }
+    .primary { background: linear-gradient(135deg, #2563eb, #06b6d4); color: #fff; box-shadow: 0 14px 28px rgba(37, 99, 235, .28); }
+    .secondary { background: #f1f6fb; color: #334155; border: 1px solid #d8e3f0; }
+    .message { min-height: 20px; margin: 14px 0 0; color: #66758a; font-size: 13px; }
+    .message.error { color: #dc2626; }
+    .report-empty { border: 1px dashed #cbd7e6; border-radius: 16px; color: #66758a; padding: 34px 18px; text-align: center; background: rgba(248, 250, 252, .82); }
     .report-section { margin-top: 18px; }
-    .card { border: 1px solid #dde5ef; border-radius: 10px; margin-top: 10px; padding: 12px; }
-    .card p { margin-bottom: 6px; color: #3d4b61; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
-    .tag { display: inline-block; border-radius: 999px; background: #e8f0ff; color: #245ec9; font-size: 11px; font-weight: 700; margin-left: 8px; padding: 3px 8px; vertical-align: 1px; }
-    .raw { margin-top: 18px; }
+    .card { border: 1px solid #e0e8f2; border-radius: 16px; margin-top: 10px; padding: 14px; background: rgba(255, 255, 255, .76); }
+    .card p { margin-bottom: 6px; color: #314155; font-size: 13px; line-height: 1.62; white-space: pre-wrap; }
+    .tag { display: inline-block; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 800; margin-left: 8px; padding: 3px 8px; vertical-align: 1px; }
+    .raw { margin-top: 20px; }
+    .loading-box { border: 1px solid rgba(14, 165, 233, .26); border-radius: 18px; padding: 22px; background: linear-gradient(180deg, rgba(240, 249, 255, .92), rgba(255, 255, 255, .78)); }
+    .loading-head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+    .spinner { width: 22px; height: 22px; border: 3px solid rgba(125, 211, 252, .22); border-top-color: #67e8f9; border-radius: 50%; animation: spin .8s linear infinite; }
+    .progress { height: 8px; overflow: hidden; border-radius: 999px; background: #dbeafe; }
+    .progress span { display: block; width: 42%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, transparent, #38bdf8, #22d3ee, transparent); animation: scan 1.45s ease-in-out infinite; }
+    .skeleton { height: 13px; margin-top: 12px; border-radius: 999px; background: linear-gradient(90deg, rgba(148, 163, 184, .12), rgba(14, 165, 233, .22), rgba(148, 163, 184, .12)); background-size: 220% 100%; animation: shimmer 1.4s ease-in-out infinite; }
+    .skeleton.short { width: 62%; }
+    .button-spinner { display: inline-block; width: 13px; height: 13px; margin-right: 8px; border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; vertical-align: -2px; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes scan { 0% { transform: translateX(-120%); } 100% { transform: translateX(260%); } }
+    @keyframes shimmer { 0% { background-position: 180% 0; } 100% { background-position: -180% 0; } }
     @media (max-width: 860px) { .header { display: block; } .health { margin-top: 18px; } .grid { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -51,9 +87,9 @@
 <div class="page">
   <header class="header">
     <div>
-      <p class="eyebrow">FAULTPILOT / LOCAL MOCK MODE</p>
-      <h1>FaultPilot Test Console</h1>
-      <p class="muted">Run the built-in diagnosis scenario without manually sending API requests.</p>
+      <p class="eyebrow">FaultPilot / AI Diagnosis Console</p>
+      <h1>Troubleshoot with Evidence</h1>
+      <p class="muted">Collect logs and database signals, then let the configured AI provider explain the evidence.</p>
     </div>
     <div class="health">
       <span id="healthDot" class="dot"></span><span id="healthText" class="muted">Checking server...</span>
@@ -62,7 +98,7 @@
   </header>
   <main class="grid">
     <section class="panel">
-      <h2>Run a diagnosis</h2>
+      <h2>Run Diagnosis</h2>
       <form id="diagnosisForm">
         <label>Project<select id="projectId" required></select></label>
         <label>Environment<select id="environment" required></select></label>
@@ -71,22 +107,22 @@
         <label class="full">Question<textarea id="question" required></textarea></label>
         <div class="actions full">
           <button id="demoButton" class="secondary" type="button">Load Mock Demo</button>
-          <button id="runButton" class="primary" type="submit">Run Diagnosis</button>
+          <button id="runButton" class="primary" type="submit"><span id="runButtonText">Run Diagnosis</span></button>
         </div>
       </form>
       <p id="formMessage" class="message"></p>
       <p class="muted">This console is for local verification. Review security configuration before exposing the server on a network.</p>
     </section>
     <section class="panel">
-      <h2>Diagnosis report</h2>
-      <div id="report"><div class="report-empty">Run the mock demo to view the diagnosis report.</div></div>
+      <h2>Diagnosis Report</h2>
+      <div id="report"><div class="report-empty">Run a diagnosis to view evidence, hypotheses, and recommended actions.</div></div>
     </section>
   </main>
   <section class="panel raw"><details><summary>Raw JSON response</summary><pre id="rawJson">{}</pre></details></section>
 </div>
 <script>
   const mockDemo = {projectId: "order-service", environment: "local", from: "2026-06-01T01:00:00Z", to: "2026-06-01T03:00:00Z", question: "Why is the order API slow?"};
-  const ids = ["healthDot", "healthText", "refreshButton", "diagnosisForm", "projectId", "environment", "from", "to", "question", "demoButton", "runButton", "formMessage", "report", "rawJson"];
+  const ids = ["healthDot", "healthText", "refreshButton", "diagnosisForm", "projectId", "environment", "from", "to", "question", "demoButton", "runButton", "runButtonText", "formMessage", "report", "rawJson"];
   const elements = Object.fromEntries(ids.map((id) => [id === "diagnosisForm" ? "form" : id, document.getElementById(id)]));
   let projects = [];
 
@@ -117,6 +153,30 @@
   function setMessage(text, error) {
     elements.formMessage.textContent = text;
     elements.formMessage.className = error ? "message error" : "message";
+  }
+  function setBusy(busy) {
+    elements.runButton.disabled = busy;
+    elements.demoButton.disabled = busy;
+    elements.refreshButton.disabled = busy;
+    elements.projectId.disabled = busy;
+    elements.environment.disabled = busy;
+    elements.from.disabled = busy;
+    elements.to.disabled = busy;
+    elements.question.disabled = busy;
+    elements.runButtonText.innerHTML = busy ? '<span class="button-spinner"></span>Analyzing...' : 'Run Diagnosis';
+  }
+  function renderLoading() {
+    elements.report.replaceChildren();
+    const box = createElement("div", "loading-box");
+    const head = createElement("div", "loading-head");
+    head.append(createElement("span", "spinner"), createElement("div", null, "AI is analyzing collected evidence"));
+    box.append(head);
+    box.append(createElement("p", "muted", "Codex/OpenAI calls can take tens of seconds. Keep this page open while FaultPilot builds the report."));
+    const progress = createElement("div", "progress");
+    progress.append(createElement("span"));
+    box.append(progress, createElement("div", "skeleton"), createElement("div", "skeleton"), createElement("div", "skeleton short"));
+    elements.report.append(box);
+    elements.rawJson.textContent = "{}";
   }
   async function refreshHealth() {
     elements.healthDot.className = "dot";
@@ -202,8 +262,9 @@
   }
   async function runDiagnosis(event) {
     event.preventDefault();
-    elements.runButton.disabled = true;
-    setMessage("Running diagnosis...", false);
+    setBusy(true);
+    renderLoading();
+    setMessage("Collecting evidence and waiting for AI analysis...", false);
     try {
       const report = await request("/api/v1/diagnoses", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({
         projectId: elements.projectId.value, environment: elements.environment.value,
@@ -213,8 +274,9 @@
       setMessage("Diagnosis completed.", false);
     } catch (error) {
       setMessage(error.message, true);
+      elements.report.replaceChildren(createElement("div", "report-empty", "Diagnosis failed. Check the error message on the left and server logs."));
     } finally {
-      elements.runButton.disabled = false;
+      setBusy(false);
     }
   }
   elements.form.addEventListener("submit", runDiagnosis);

@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * {@code logs.type=local-file} reads a sample log, and the report contains the parsed exception
  * cluster with intact evidence references.
  */
-@SpringBootTest
+@SpringBootTest(properties = "faultpilot.ai.provider=mock")
 @AutoConfigureMockMvc
 @ActiveProfiles("localfileit")
 class LocalFileDiagnosisIT {

@@ -92,9 +92,16 @@ List configured projects:
 curl http://localhost:8080/api/v1/projects
 ```
 
-Open the built-in test console in a browser:
+Open the built-in console in a browser:
 
 [http://localhost:8080/](http://localhost:8080/)
+
+Pick a project and environment, then click **Run Diagnosis** (or **Load Mock Demo** to
+prefill the built-in scenario). While the report is generated the console shows an
+"AI is analyzing collected evidence" loading state. In Mock mode this returns almost
+instantly; with `openai-api` or `codex-cli` a real model call can take tens of seconds,
+so keep the page open until the report renders. The raw JSON response is available under
+the collapsible section at the bottom.
 
 Run the built-in local slow-SQL scenario:
 
@@ -116,22 +123,37 @@ Stop the foreground server with `Ctrl+C`.
 
 ## AI Providers
 
-`faultpilot.ai.provider` selects how reports are generated. Any provider failure (transport,
-timeout, malformed output) falls back to a rule-only report — the request never fails.
+`FAULTPILOT_AI_PROVIDER` selects how reports are generated. Configuration is read from environment
+variables (just `export` them, as shown below); every variable has a default, so an unset one uses
+it. Any provider failure (transport, timeout, malformed output) falls back to a rule-only report —
+the request never fails. (A flag such as `--faultpilot.ai.provider=...` still overrides the env var.)
+
+| Variable | Default | Used by |
+| --- | --- | --- |
+| `FAULTPILOT_AI_PROVIDER` | `mock` | provider selection (`mock` / `openai-api` / `codex-cli`) |
+| `OPENAI_API_KEY` | _(empty)_ | `openai-api` (required) |
+| `OPENAI_MODEL` | _(empty)_ | `openai-api` (required; must support json_schema) |
+| `OPENAI_BASE_URL` | `https://api.openai.com` | `openai-api` (optional; compatible gateway) |
+| `OPENAI_TIMEOUT` | `35s` | `openai-api` (optional) |
+| `FAULTPILOT_CODEX_COMMAND` / `FAULTPILOT_CODEX_MODEL` / `FAULTPILOT_CODEX_TIMEOUT` | `codex` / _(empty)_ / `120s` | `codex-cli` (optional) |
+| `FAULTPILOT_DB_URL` / `FAULTPILOT_DB_USER` / `FAULTPILOT_DB_PASSWORD` | _(empty)_ | a project's `logs(type: jdbc)` or `database` block |
+| `FAULTPILOT_INGEST_TOKEN` | _(empty)_ | `faultpilot.ingestion.tokens` |
 
 - **`mock`** (default): deterministic, no network, for demos and tests.
 - **`openai-api`**: real diagnosis via the OpenAI API. Configure via environment:
   ```bash
+  export FAULTPILOT_AI_PROVIDER=openai-api
   export OPENAI_API_KEY=sk-...
   export OPENAI_MODEL=gpt-4o-mini        # a model that supports json_schema response format
-  mvn -pl faultpilot-server spring-boot:run --faultpilot.ai.provider=openai-api
+  mvn -pl faultpilot-server spring-boot:run
   ```
-  `base-url` may point at a compatible gateway (`faultpilot.ai.base-url`). The API key is sent only
-  in the Authorization header and is never logged.
+  `OPENAI_BASE_URL` may point at a compatible gateway. The API key is sent only in the
+  Authorization header and is never logged.
 - **`codex-cli`** (experimental, local-only): reuses an already-authenticated Codex CLI.
   ```bash
   codex login            # you run this yourself, once
-  mvn -pl faultpilot-server spring-boot:run --faultpilot.ai.provider=codex-cli
+  export FAULTPILOT_AI_PROVIDER=codex-cli
+  mvn -pl faultpilot-server spring-boot:run
   ```
   FaultPilot only invokes `codex exec` in a read-only sandbox; it never runs `codex login` and never
   reads, copies, or logs Codex credential files. **Do not enable `codex-cli` for online
@@ -140,13 +162,52 @@ timeout, malformed output) falls back to a rule-only report — the request neve
 The model only ever receives the already-sanitized evidence context, and root-cause strength is
 computed by rules, not the model.
 
-## Prepare a Java Application
+## Connect a Java Application
 
-The planned MVP will analyze an application without embedding an SDK:
+FaultPilot analyzes an application without embedding an SDK. The default
+[`application.yml`](../../faultpilot-server/src/main/resources/application.yml) ships only the mock
+demo project; to connect a real app, add a project to `faultpilot.projects` and combine the
+evidence sources you need — every diagnosis collects them together. Pick **one** log source via
+`logs.type` (`local-file` | `jdbc` | `mock`), and optionally add a `database` block on the same
+project for read-only DB analysis: logs and database are additive, not either/or.
 
-1. Write application logs to a readable local file, or expose a read-only JDBC log table.
-2. Create a dedicated read-only MySQL or PostgreSQL account if database diagnostics are required.
-3. Keep database slow-query statistics enabled when slow SQL summaries are required.
-4. Review the redacted AI payload before using production data with a model provider.
+| Integration | Prepare on the monitored app | Required fields | Notes |
+| --- | --- | --- | --- |
+| **Local log files** ([example](../../examples/local-file/README.md)) | A readable log file on the FaultPilot host | `logs.type: local-file`, `logs.paths` | The default parser reads the Spring Boot console format; set `logs.pattern` only for other layouts. Only `WARN`/`ERROR` lines are analyzed. |
+| **JDBC log table** ([example](../../examples/jdbc-log-table/README.md)) | A **read-only** DB view with columns `occurred_at, level, trace_id, message, stack_trace` | `logs.type: jdbc`, `logs.url`, `logs.username`, `logs.password`, `logs.view` | Add your DB's JDBC driver to the classpath (only H2 is bundled). |
+| **Read-only database** ([MySQL](../../examples/mysql-local/README.md) / [PostgreSQL](../../examples/postgres-local/README.md)) | A dedicated **read-only** MySQL/PostgreSQL account | `database.type` (`mysql`\|`postgres`), `database.url`, `database.username`, `database.password` | Connection / long-transaction / lock-wait snapshots and slow-SQL summaries via built-in fixed SQL. Keep slow-query statistics enabled for slow-SQL summaries. |
+
+Example: one project that reads local log files **and** a read-only MySQL database. Credentials use
+environment variables (`FAULTPILOT_DB_*`); every field maps to `FaultPilotProperties`.
+
+```yaml
+faultpilot:
+  projects:
+    - id: my-app
+      display-name: My App
+      integration-level: L2
+      environments: [local]
+      max-query-hours: 168
+      max-results: 500
+      logs:                                    # pick ONE source: local-file | jdbc | mock
+        type: local-file
+        zone: Asia/Shanghai                    # interpret timestamps without an offset
+        paths:
+          - /absolute/path/to/your-app/error.log
+        # set `pattern` only if your layout differs from the Spring Boot console format
+      database:                                # OPTIONAL — read-only MySQL/PostgreSQL
+        type: mysql                            # mysql | postgres
+        url: ${FAULTPILOT_DB_URL}              # e.g. jdbc:mysql://localhost:3306/app
+        username: ${FAULTPILOT_DB_USER}        # read-only account
+        password: ${FAULTPILOT_DB_PASSWORD}
+        long-tx-threshold: 30s
+```
+
+For JDBC log tables and PostgreSQL, see the runnable samples under `examples/`. All integrations
+use read-only access, fixed parameterized SQL, time-range and max-result limits, and evidence
+redaction. Before sending production data to a model provider, review the redacted AI payload.
+
+**Next version (not in v0.1.0):** a Spring Boot Starter for push-based ingestion, an integration
+wizard UI, and standardized metrics / trace / release-event sources.
 
 See the [product overview](overview.md) and [Chinese SSOT](../zh-CN/specification.md) for the reviewed scope.

@@ -30,7 +30,7 @@ The current `v0.1.0` implementation includes:
 - AI diagnosis providers: `openai-api` (API key) and an experimental local `codex-cli` (reuses an existing `codex login`); the model only explains collected evidence and any failure falls back to a rule-only report.
 - Deterministic evidence sanitization, clustering, correlation rules, evidence strength, and context budgeting.
 - REST endpoints for diagnosis, report lookup, project listing, health checks, and token-protected event ingestion.
-- A built-in browser test console.
+- A built-in browser console.
 - Rule-only fallback behavior when a model adapter fails.
 
 Spring Boot Starter, Prometheus, Loki, Elasticsearch, OpenTelemetry, Alertmanager, and automated remediation are intentionally deferred.
@@ -60,7 +60,7 @@ curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/v1/projects
 ```
 
-Open [http://localhost:8080/](http://localhost:8080/) to use the built-in test console without manually sending API requests.
+Open [http://localhost:8080/](http://localhost:8080/) to use the built-in console without manually sending API requests.
 
 Only `faultpilot-server` is an executable Spring Boot service. See the [getting-started guide](docs/en/getting-started.md) for module responsibilities and a complete Mock diagnosis request.
 

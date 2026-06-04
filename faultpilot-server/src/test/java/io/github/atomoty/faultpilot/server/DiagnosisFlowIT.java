@@ -22,7 +22,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * End-to-end mock flow over the REST API, asserting the specification.md §11 acceptance contract:
  * valid JSON, expected root-cause label hit, required evidence ids referenced, no evidence-less root cause.
  */
-@SpringBootTest(properties = "faultpilot.ingestion.require-token=false")
+@SpringBootTest(properties = {
+        "faultpilot.ai.provider=mock",
+        "faultpilot.ingestion.require-token=false"
+})
 @AutoConfigureMockMvc
 class DiagnosisFlowIT {
 
