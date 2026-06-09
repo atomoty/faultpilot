@@ -118,6 +118,8 @@ curl -X POST http://localhost:8080/api/v1/diagnoses \
 
 报告和写入的事件会持久化到本地 H2 数据库（默认 `./data/`，可用 `FAULTPILOT_STORE_URL` 覆盖），因此重启后 `GET /api/v1/diagnoses/{id}` 仍可查询。`data/` 目录已被 git 忽略，不会发布。
 
+控制台的 **Recent Diagnoses（最近诊断）** 面板会列出已存报告（按时间倒序），点击某行可重新打开其完整报告。同样的数据也可通过 `GET /api/v1/diagnoses?projectId=&environment=&limit=` 获取。
+
 前台运行时，使用 `Ctrl+C` 停止服务。
 
 ## AI 提供方

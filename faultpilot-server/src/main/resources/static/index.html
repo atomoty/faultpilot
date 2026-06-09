@@ -69,6 +69,13 @@
     .card p { margin-bottom: 6px; color: #314155; font-size: 13px; line-height: 1.62; white-space: pre-wrap; }
     .tag { display: inline-block; border-radius: 999px; background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 800; margin-left: 8px; padding: 3px 8px; vertical-align: 1px; }
     .raw { margin-top: 20px; }
+    .history { margin-top: 20px; }
+    .history-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .history-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; text-align: left; background: rgba(255, 255, 255, .76); border: 1px solid #e0e8f2; border-radius: 14px; margin-top: 10px; padding: 12px 14px; color: #102033; }
+    .history-row:hover:not(:disabled) { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(14, 165, 233, .12); }
+    .history-row .hmeta { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .history-row .hsummary { font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .history-row .hsub { color: #66758a; font-size: 12px; }
     .loading-box { border: 1px solid rgba(14, 165, 233, .26); border-radius: 18px; padding: 22px; background: linear-gradient(180deg, rgba(240, 249, 255, .92), rgba(255, 255, 255, .78)); }
     .loading-head { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
     .spinner { width: 22px; height: 22px; border: 3px solid rgba(125, 211, 252, .22); border-top-color: #67e8f9; border-radius: 50%; animation: spin .8s linear infinite; }
@@ -118,11 +125,19 @@
       <div id="report"><div class="report-empty">Run a diagnosis to view evidence, hypotheses, and recommended actions.</div></div>
     </section>
   </main>
+  <section class="panel history">
+    <div class="history-head">
+      <h2>Recent Diagnoses</h2>
+      <button id="historyRefresh" class="secondary" type="button">Refresh</button>
+    </div>
+    <p class="muted">Stored reports survive restarts. Click a row to open its full report above.</p>
+    <div id="historyList"><div class="report-empty">No diagnoses yet.</div></div>
+  </section>
   <section class="panel raw"><details><summary>Raw JSON response</summary><pre id="rawJson">{}</pre></details></section>
 </div>
 <script>
   const mockDemo = {projectId: "order-service", environment: "local", from: "2026-06-01T01:00:00Z", to: "2026-06-01T03:00:00Z", question: "Why is the order API slow?"};
-  const ids = ["healthDot", "healthText", "refreshButton", "diagnosisForm", "projectId", "environment", "from", "to", "question", "demoButton", "runButton", "runButtonText", "formMessage", "report", "rawJson"];
+  const ids = ["healthDot", "healthText", "refreshButton", "diagnosisForm", "projectId", "environment", "from", "to", "question", "demoButton", "runButton", "runButtonText", "formMessage", "report", "rawJson", "historyList", "historyRefresh"];
   const elements = Object.fromEntries(ids.map((id) => [id === "diagnosisForm" ? "form" : id, document.getElementById(id)]));
   let projects = [];
 
@@ -260,6 +275,43 @@
     if ((report.unavailableSources || []).length) addSection("Unavailable sources").append(createElement("p", "muted", report.unavailableSources.join(", ")));
     elements.rawJson.textContent = JSON.stringify(report, null, 2);
   }
+  async function openReport(diagnosisId) {
+    try {
+      const report = await request("/api/v1/diagnoses/" + encodeURIComponent(diagnosisId));
+      renderReport(report);
+      setMessage("Opened " + diagnosisId + ".", false);
+      elements.report.scrollIntoView({behavior: "smooth", block: "start"});
+    } catch (error) {
+      setMessage(error.message, true);
+    }
+  }
+  function renderHistory(rows) {
+    elements.historyList.replaceChildren();
+    if (!rows.length) {
+      elements.historyList.append(createElement("div", "report-empty", "No diagnoses yet."));
+      return;
+    }
+    rows.forEach((row) => {
+      const button = createElement("button", "history-row");
+      button.type = "button";
+      const meta = createElement("div", "hmeta");
+      meta.append(createElement("div", "hsummary", row.summary || "(no summary)"));
+      const when = row.createdAt ? new Date(row.createdAt).toLocaleString() : "";
+      meta.append(createElement("div", "hsub", [row.projectId, row.environment, when].filter(Boolean).join(" · ")));
+      button.append(meta);
+      if (row.ruleFallback) button.append(createElement("span", "tag", "rule fallback"));
+      button.addEventListener("click", () => openReport(row.diagnosisId));
+      elements.historyList.append(button);
+    });
+  }
+  async function loadHistory() {
+    try {
+      const rows = await request("/api/v1/diagnoses?limit=20");
+      renderHistory(rows);
+    } catch (error) {
+      elements.historyList.replaceChildren(createElement("div", "report-empty", "Could not load history: " + error.message));
+    }
+  }
   async function runDiagnosis(event) {
     event.preventDefault();
     setBusy(true);
@@ -272,6 +324,7 @@
       })});
       renderReport(report);
       setMessage("Diagnosis completed.", false);
+      loadHistory();
     } catch (error) {
       setMessage(error.message, true);
       elements.report.replaceChildren(createElement("div", "report-empty", "Diagnosis failed. Check the error message on the left and server logs."));
@@ -281,12 +334,14 @@
   }
   elements.form.addEventListener("submit", runDiagnosis);
   elements.demoButton.addEventListener("click", loadMockDemo);
+  elements.historyRefresh.addEventListener("click", loadHistory);
   // Refresh re-checks health/projects and re-selects the project, but keeps the user's time range.
   elements.refreshButton.addEventListener("click", async () => { await Promise.allSettled([refreshHealth(), refreshProjects()]); selectDefaultProject(); });
   elements.projectId.addEventListener("change", () => renderEnvironments(projects.find((project) => project.id === elements.projectId.value)));
   // On load: default to the last 2 hours so queries cover recent logs, and select a project.
   setDefaultRange();
   Promise.allSettled([refreshHealth(), refreshProjects()]).then(selectDefaultProject);
+  loadHistory();
 </script>
 </body>
 </html>

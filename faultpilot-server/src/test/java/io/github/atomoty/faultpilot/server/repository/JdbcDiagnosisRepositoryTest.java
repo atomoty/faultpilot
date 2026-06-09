@@ -71,6 +71,49 @@ class JdbcDiagnosisRepositoryTest {
         assertThat(repository.find("diag-2")).isPresent();
     }
 
+    @Test
+    void listReturnsSummariesNewestFirstWithFields() {
+        repository.save(report("a", "order-service", "local", "older", Instant.parse("2026-06-01T01:00:00Z")));
+        repository.save(report("b", "order-service", "local", "newer", Instant.parse("2026-06-01T02:00:00Z")));
+
+        List<ReportSummary> list = repository.list(null, null, 10);
+
+        assertThat(list).extracting(ReportSummary::diagnosisId).containsExactly("b", "a");
+        assertThat(list.get(0).summary()).isEqualTo("newer");
+        assertThat(list.get(0).projectId()).isEqualTo("order-service");
+        assertThat(list.get(0).environment()).isEqualTo("local");
+        assertThat(list.get(0).createdAt()).isEqualTo(Instant.parse("2026-06-01T02:00:00Z"));
+        assertThat(list.get(0).ruleFallback()).isFalse();
+    }
+
+    @Test
+    void listFiltersByProjectAndEnvironment() {
+        Instant at = Instant.parse("2026-06-01T01:00:00Z");
+        repository.save(report("a", "order-service", "local", "keep", at));
+        repository.save(report("b", "order-service", "staging", "wrong-env", at));
+        repository.save(report("c", "other", "local", "wrong-project", at));
+
+        List<ReportSummary> list = repository.list("order-service", "local", 10);
+
+        assertThat(list).extracting(ReportSummary::diagnosisId).containsExactly("a");
+    }
+
+    @Test
+    void listRespectsLimit() {
+        Instant base = Instant.parse("2026-06-01T01:00:00Z");
+        for (int i = 0; i < 5; i++) {
+            repository.save(report("d" + i, "order-service", "local", "s" + i, base.plusSeconds(i)));
+        }
+
+        assertThat(repository.list(null, null, 2)).hasSize(2);
+    }
+
+    private DiagnosisReport report(String id, String projectId, String environment, String summary, Instant createdAt) {
+        return new DiagnosisReport(id, projectId, environment, summary,
+                List.of(), List.of(), List.of(), List.of(), List.of(), null, false,
+                DiagnosisReport.DISCLAIMER, createdAt);
+    }
+
     private DiagnosisReport sampleReport(String id) {
         return new DiagnosisReport(
                 id, "order-service", "local", "pool contention",
