@@ -2,6 +2,7 @@ package io.github.atomoty.faultpilot.server.repository;
 
 import io.github.atomoty.faultpilot.core.model.DiagnosisReport;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,4 +14,10 @@ public interface DiagnosisReportRepository {
     void save(DiagnosisReport report);
 
     Optional<DiagnosisReport> find(String diagnosisId);
+
+    /**
+     * Most recent report summaries first, capped at {@code limit}. A null {@code projectId} or
+     * {@code environment} means "no filter on that field".
+     */
+    List<ReportSummary> list(String projectId, String environment, int limit);
 }

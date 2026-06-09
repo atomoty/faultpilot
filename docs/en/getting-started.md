@@ -123,6 +123,9 @@ Reports and ingested events are persisted to a local H2 database (`./data/` by d
 `FAULTPILOT_STORE_URL`), so `GET /api/v1/diagnoses/{id}` still works after a restart. The `data/`
 directory is git-ignored and never published.
 
+The console's **Recent Diagnoses** panel lists stored reports (newest first); click a row to reopen
+its full report. The same data is available via `GET /api/v1/diagnoses?projectId=&environment=&limit=`.
+
 Stop the foreground server with `Ctrl+C`.
 
 ## AI Providers
