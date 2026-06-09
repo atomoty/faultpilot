@@ -116,6 +116,8 @@ curl -X POST http://localhost:8080/api/v1/diagnoses \
 
 返回的 JSON 报告应包含 `slow-sql-pool-contention` 根因候选，并引用对应证据。
 
+报告和写入的事件会持久化到本地 H2 数据库（默认 `./data/`，可用 `FAULTPILOT_STORE_URL` 覆盖），因此重启后 `GET /api/v1/diagnoses/{id}` 仍可查询。`data/` 目录已被 git 忽略，不会发布。
+
 前台运行时，使用 `Ctrl+C` 停止服务。
 
 ## AI 提供方

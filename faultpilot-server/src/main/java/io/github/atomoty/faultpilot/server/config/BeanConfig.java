@@ -179,7 +179,7 @@ public class BeanConfig {
 
     /**
      * Collects from all log/metric/slow-sql source adapters plus every {@link ChangeEventSource}
-     * bean. The latter list includes both the mock fixtures and the {@code InMemoryEventStore}
+     * bean. The latter list includes both the mock fixtures and the {@code JdbcEventStore}
      * written via POST /events, since it is itself a {@link ChangeEventSource}.
      */
     @Bean

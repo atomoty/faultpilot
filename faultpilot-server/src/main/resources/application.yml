@@ -6,6 +6,16 @@ spring:
     name: faultpilot
   jackson:
     default-property-inclusion: non_null
+  # Internal store for diagnosis reports and ingested events (survives restarts).
+  # Defaults to a local H2 file under ./data — no setup needed; override via env if desired.
+  datasource:
+    url: ${FAULTPILOT_STORE_URL:jdbc:h2:file:./data/faultpilot;AUTO_SERVER=TRUE}
+    driver-class-name: org.h2.Driver
+    username: ${FAULTPILOT_STORE_USER:sa}
+    password: ${FAULTPILOT_STORE_PASSWORD:}
+  sql:
+    init:
+      mode: always
 
 management:
   endpoints:

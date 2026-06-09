@@ -7,6 +7,7 @@ target/
 !examples/local-file/sample-app.log
 .env
 .codegraph/
+data/
 
 # Internal planning artifacts not published in the documentation release.
 tasks/

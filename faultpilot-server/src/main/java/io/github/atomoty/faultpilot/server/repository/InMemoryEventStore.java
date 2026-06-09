@@ -1,26 +1,22 @@
 package io.github.atomoty.faultpilot.server.repository;
 
-import io.github.atomoty.faultpilot.core.adapter.ChangeEventSource;
 import io.github.atomoty.faultpilot.core.model.ChangeEvent;
 import io.github.atomoty.faultpilot.core.model.EvidenceQuery;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * In-memory store for change events written via {@code POST /api/v1/events}. Also acts as a
- * {@link ChangeEventSource} so written events participate in correlation. v0.1.0 only — replaced
- * by persistent storage in a later round.
+ * In-memory {@link EventStore}. Not a Spring bean — the persistent {@link JdbcEventStore} is the
+ * registered implementation; this is kept for tests.
  */
-@Repository
-public class InMemoryEventStore implements ChangeEventSource {
+public class InMemoryEventStore implements EventStore {
 
     private final List<ChangeEvent> events = new CopyOnWriteArrayList<>();
     private final AtomicLong sequence = new AtomicLong();
 
-    /** Store an event, assigning an evidence id. Returns the stored event. */
+    @Override
     public ChangeEvent save(ChangeEvent event) {
         String evidenceId = "event-" + sequence.incrementAndGet();
         ChangeEvent stored = new ChangeEvent(evidenceId, event.projectId(), event.environment(),

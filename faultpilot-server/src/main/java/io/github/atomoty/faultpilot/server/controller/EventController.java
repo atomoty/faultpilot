@@ -4,7 +4,7 @@ import io.github.atomoty.faultpilot.core.model.ChangeEvent;
 import io.github.atomoty.faultpilot.core.sanitize.EvidenceSanitizer;
 import io.github.atomoty.faultpilot.server.api.EventRequestDto;
 import io.github.atomoty.faultpilot.server.config.ProjectRegistry;
-import io.github.atomoty.faultpilot.server.repository.InMemoryEventStore;
+import io.github.atomoty.faultpilot.server.repository.EventStore;
 import io.github.atomoty.faultpilot.server.security.IngestionAuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
@@ -22,12 +22,12 @@ import java.util.Map;
 @RequestMapping("/api/v1/events")
 public class EventController {
 
-    private final InMemoryEventStore eventStore;
+    private final EventStore eventStore;
     private final ProjectRegistry projectRegistry;
     private final IngestionAuthService ingestionAuth;
     private final EvidenceSanitizer sanitizer;
 
-    public EventController(InMemoryEventStore eventStore, ProjectRegistry projectRegistry,
+    public EventController(EventStore eventStore, ProjectRegistry projectRegistry,
                           IngestionAuthService ingestionAuth, EvidenceSanitizer sanitizer) {
         this.eventStore = eventStore;
         this.projectRegistry = projectRegistry;
