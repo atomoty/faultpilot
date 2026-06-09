@@ -27,6 +27,15 @@ import java.util.function.Function;
  * Orchestrates evidence source adapters in parallel with a per-source timeout. Any source that
  * times out or throws is recorded as unavailable and contributes no evidence — the diagnosis
  * proceeds with whatever was collected (specification.md §9).
+ *
+ * <p><b>Timeout boundary (important for new source adapters).</b> {@code perSourceTimeout} is a
+ * <i>soft</i> timeout: it completes the waiting future and frees the diagnosis, but it does NOT
+ * interrupt the underlying work — a {@link CompletableFuture} cannot interrupt a task already
+ * running on the executor (a JDK limitation). The bounded executor then sheds further submissions
+ * (degraded to "rejected") rather than queuing unboundedly. Therefore every source adapter MUST
+ * enforce its own hard timeout on blocking I/O (e.g. JDBC sources set login/query timeouts; local
+ * files are bounded in size). Do not add a source that can block indefinitely and rely on this
+ * collector to cancel it — it cannot.
  */
 public class EvidenceCollector {
 
@@ -88,6 +97,8 @@ public class EvidenceCollector {
             String label = kind + ":" + adapter.getClass().getSimpleName();
             CompletableFuture<List<R>> f;
             try {
+                // Soft timeout: completes this future on expiry but does NOT interrupt the running
+                // task (see class javadoc). The adapter itself must bound its blocking I/O.
                 f = CompletableFuture
                         .supplyAsync(() -> call.apply(adapter), executor)
                         .orTimeout(perSourceTimeout.toMillis(), TimeUnit.MILLISECONDS)
