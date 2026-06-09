@@ -2,7 +2,7 @@ package io.github.atomoty.faultpilot.server;
 
 import io.github.atomoty.faultpilot.core.model.ChangeEvent;
 import io.github.atomoty.faultpilot.core.model.EvidenceQuery;
-import io.github.atomoty.faultpilot.server.repository.InMemoryEventStore;
+import io.github.atomoty.faultpilot.server.repository.EventStore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -28,7 +28,7 @@ class EventStoreRedactionIT {
     @Autowired
     MockMvc mockMvc;
     @Autowired
-    InMemoryEventStore eventStore;
+    EventStore eventStore;
 
     @Test
     void secretsAreRedactedBeforeStorage() throws Exception {

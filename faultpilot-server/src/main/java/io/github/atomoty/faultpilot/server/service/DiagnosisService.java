@@ -23,7 +23,7 @@ import io.github.atomoty.faultpilot.core.rule.RuleAnalyzer;
 import io.github.atomoty.faultpilot.core.sanitize.EvidenceSanitizer;
 import io.github.atomoty.faultpilot.server.config.FaultPilotProperties;
 import io.github.atomoty.faultpilot.server.config.ProjectRegistry;
-import io.github.atomoty.faultpilot.server.repository.InMemoryDiagnosisRepository;
+import io.github.atomoty.faultpilot.server.repository.DiagnosisReportRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,7 @@ public class DiagnosisService {
     private final ContextBudgeter budgeter;
     private final DiagnosisModel model;
     private final ReportFallbackService fallbackService;
-    private final InMemoryDiagnosisRepository repository;
+    private final DiagnosisReportRepository repository;
     private final AtomicInteger counter = new AtomicInteger();
 
     public DiagnosisService(ProjectRegistry projectRegistry,
@@ -69,7 +69,7 @@ public class DiagnosisService {
                             ContextBudgeter budgeter,
                             DiagnosisModel model,
                             ReportFallbackService fallbackService,
-                            InMemoryDiagnosisRepository repository) {
+                            DiagnosisReportRepository repository) {
         this.projectRegistry = projectRegistry;
         this.evidenceCollector = evidenceCollector;
         this.sanitizer = sanitizer;

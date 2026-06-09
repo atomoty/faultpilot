@@ -3,7 +3,7 @@ package io.github.atomoty.faultpilot.server.controller;
 import io.github.atomoty.faultpilot.core.model.DiagnosisReport;
 import io.github.atomoty.faultpilot.core.model.DiagnosisRequest;
 import io.github.atomoty.faultpilot.server.api.DiagnosisRequestDto;
-import io.github.atomoty.faultpilot.server.repository.InMemoryDiagnosisRepository;
+import io.github.atomoty.faultpilot.server.repository.DiagnosisReportRepository;
 import io.github.atomoty.faultpilot.server.service.DiagnosisService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class DiagnosisController {
 
     private final DiagnosisService diagnosisService;
-    private final InMemoryDiagnosisRepository repository;
+    private final DiagnosisReportRepository repository;
 
-    public DiagnosisController(DiagnosisService diagnosisService, InMemoryDiagnosisRepository repository) {
+    public DiagnosisController(DiagnosisService diagnosisService, DiagnosisReportRepository repository) {
         this.diagnosisService = diagnosisService;
         this.repository = repository;
     }

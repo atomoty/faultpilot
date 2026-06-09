@@ -119,6 +119,10 @@ curl -X POST http://localhost:8080/api/v1/diagnoses \
 
 The JSON report should include a `slow-sql-pool-contention` root-cause candidate with referenced evidence.
 
+Reports and ingested events are persisted to a local H2 database (`./data/` by default, override with
+`FAULTPILOT_STORE_URL`), so `GET /api/v1/diagnoses/{id}` still works after a restart. The `data/`
+directory is git-ignored and never published.
+
 Stop the foreground server with `Ctrl+C`.
 
 ## AI Providers
