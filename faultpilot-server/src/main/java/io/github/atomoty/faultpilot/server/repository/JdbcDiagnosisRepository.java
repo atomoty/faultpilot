@@ -3,6 +3,8 @@ package io.github.atomoty.faultpilot.server.repository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.atomoty.faultpilot.core.model.DiagnosisReport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -19,6 +22,8 @@ import java.util.Optional;
  */
 @Repository
 public class JdbcDiagnosisRepository implements DiagnosisReportRepository {
+
+    private static final Logger log = LoggerFactory.getLogger(JdbcDiagnosisRepository.class);
 
     private static final String UPSERT = """
             MERGE INTO diagnosis_report (id, project_id, environment, created_at, report_json)
@@ -52,7 +57,7 @@ public class JdbcDiagnosisRepository implements DiagnosisReportRepository {
     @Override
     public List<ReportSummary> list(String projectId, String environment, int limit) {
         StringBuilder sql = new StringBuilder(
-                "SELECT created_at, report_json FROM diagnosis_report WHERE 1=1");
+                "SELECT id, created_at, report_json FROM diagnosis_report WHERE 1=1");
         List<Object> args = new ArrayList<>();
         if (projectId != null && !projectId.isBlank()) {
             sql.append(" AND project_id = ?");
@@ -65,11 +70,19 @@ public class JdbcDiagnosisRepository implements DiagnosisReportRepository {
         sql.append(" ORDER BY created_at DESC LIMIT ?");
         args.add(limit);
 
+        // A single corrupt row must not take the whole history listing down: skip it with a WARN.
         return jdbc.query(sql.toString(), (rs, rowNum) -> {
-            DiagnosisReport report = fromJson(rs.getString("report_json"));
-            return new ReportSummary(report.diagnosisId(), report.projectId(), report.environment(),
-                    rs.getTimestamp("created_at").toInstant(), report.summary(), report.ruleFallback());
-        }, args.toArray());
+            String id = rs.getString("id");
+            try {
+                DiagnosisReport report = fromJson(rs.getString("report_json"));
+                return new ReportSummary(report.diagnosisId(), report.projectId(), report.environment(),
+                        rs.getTimestamp("created_at").toInstant(), report.summary(), report.ruleFallback());
+            } catch (IllegalStateException corrupt) {
+                log.warn("Skipping unreadable stored report {} in history listing: {}",
+                        id, corrupt.getMessage());
+                return null;
+            }
+        }, args.toArray()).stream().filter(Objects::nonNull).toList();
     }
 
     private String toJson(DiagnosisReport report) {

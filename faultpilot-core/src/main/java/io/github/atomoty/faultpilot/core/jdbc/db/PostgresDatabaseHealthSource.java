@@ -50,8 +50,8 @@ public class PostgresDatabaseHealthSource implements DatabaseHealthSourceAdapter
             return new DatabaseHealthSnapshot("dbhealth-1", true, null,
                     active, idle, waiting, longTx, lockWaits);
         } catch (DataSourceUnavailableException unavailable) {
-            log.warn("PostgreSQL health source unavailable for project {}: {}",
-                    query.projectId(), unavailable.getMessage());
+            log.warn("PostgreSQL health source unavailable for project {}: {} (cause: {})",
+                    query.projectId(), unavailable.getMessage(), unavailable.rootCauseSummary());
             return DatabaseHealthSnapshot.unavailable("PostgreSQL unavailable");
         }
     }

@@ -168,7 +168,7 @@ FaultPilot 不嵌入 SDK 即可分析应用。默认的
 | 接入方式 | 被监控应用需准备 | 必填字段 | 说明 |
 | --- | --- | --- | --- |
 | **本地日志文件**（[示例](../../examples/local-file/README.md)） | FaultPilot 所在主机上一个可读的日志文件 | `logs.type: local-file`、`logs.paths` | 默认解析器识别 Spring Boot 控制台格式；仅当布局不同才需配 `logs.pattern`。只分析 `WARN`/`ERROR` 行。 |
-| **JDBC 日志表**（[示例](../../examples/jdbc-log-table/README.md)） | 一个**只读**数据库视图，列为 `occurred_at, level, trace_id, message, stack_trace` | `logs.type: jdbc`、`logs.url`、`logs.username`、`logs.password`、`logs.view` | 需将对应数据库的 JDBC 驱动加入 classpath（仅内置 H2）。 |
+| **JDBC 日志表**（[示例](../../examples/jdbc-log-table/README.md)） | 一个**只读**数据库视图，列为 `occurred_at, level, trace_id, message, stack_trace` | `logs.type: jdbc`、`logs.url`、`logs.username`、`logs.password`、`logs.view` | MySQL/PostgreSQL 驱动已随 server 内置；其他数据库需自行将 JDBC 驱动加入 classpath。 |
 | **只读数据库**（[MySQL](../../examples/mysql-local/README.md) / [PostgreSQL](../../examples/postgres-local/README.md)） | 一个专用的**只读** MySQL/PostgreSQL 账号 | `database.type`（`mysql`\|`postgres`）、`database.url`、`database.username`、`database.password` | 通过内置固定 SQL 采集连接数 / 长事务 / 锁等待快照与慢 SQL 摘要。需慢 SQL 摘要时，确保慢查询统计已启用。 |
 
 示例：一个项目同时读取本地日志文件**和**只读 MySQL 数据库。凭据用环境变量（`FAULTPILOT_DB_*`）；每个字段都对应 `FaultPilotProperties`。

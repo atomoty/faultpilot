@@ -24,10 +24,8 @@ state, long transactions, lock waits, and slow-SQL templates — using fixed, bu
 # 1. Create the read-only account (edit the password first).
 mysql -u root -p < examples/mysql-local/readonly-account.sql
 
-# 2. Add the MySQL JDBC driver to the classpath (FaultPilot bundles only H2):
-#    com.mysql:mysql-connector-j
-
-# 3. Point FaultPilot at the read-only account and run.
+# 2. Point FaultPilot at the read-only account and run.
+#    (The MySQL JDBC driver ships with faultpilot-server — nothing to add.)
 export FAULTPILOT_MYSQL_URL=jdbc:mysql://localhost:3306/app
 export FAULTPILOT_MYSQL_USER=faultpilot_ro
 export FAULTPILOT_MYSQL_PASSWORD=change-me

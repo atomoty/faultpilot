@@ -259,9 +259,18 @@ public class DiagnosisService {
         return (c.spike() ? "突增 " : "") + head + " ×" + c.count();
     }
 
+    /**
+     * The counter is in-memory and resets on restart, while reports are persisted — so a candidate
+     * id may already exist in the store (same-day restart). Walk forward until a free id is found;
+     * otherwise the MERGE-based save would silently overwrite the stored report.
+     */
     private String nextId() {
-        return "diag-" + DAY.format(java.time.LocalDate.now()) + "-"
-                + String.format("%03d", counter.incrementAndGet());
+        String id;
+        do {
+            id = "diag-" + DAY.format(java.time.LocalDate.now()) + "-"
+                    + String.format("%03d", counter.incrementAndGet());
+        } while (repository.find(id).isPresent());
+        return id;
     }
 
     /** Thrown for invalid request parameters. Maps to HTTP 400. */

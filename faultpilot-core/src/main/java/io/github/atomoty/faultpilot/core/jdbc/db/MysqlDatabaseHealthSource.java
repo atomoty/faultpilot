@@ -55,8 +55,8 @@ public class MysqlDatabaseHealthSource implements DatabaseHealthSourceAdapter {
             return new DatabaseHealthSnapshot("dbhealth-1", true, null,
                     active, idle, 0, longTx, lockWaits);
         } catch (io.github.atomoty.faultpilot.core.jdbc.DataSourceUnavailableException unavailable) {
-            log.warn("MySQL health source unavailable for project {}: {}",
-                    query.projectId(), unavailable.getMessage());
+            log.warn("MySQL health source unavailable for project {}: {} (cause: {})",
+                    query.projectId(), unavailable.getMessage(), unavailable.rootCauseSummary());
             return DatabaseHealthSnapshot.unavailable("MySQL unavailable");
         }
     }
@@ -105,7 +105,7 @@ public class MysqlDatabaseHealthSource implements DatabaseHealthSourceAdapter {
                             + " waiting=" + rs.getString("REQUESTING_ENGINE_TRANSACTION_ID"))));
             return out;
         } catch (SQLException e) {
-            log.warn("data_lock_waits unavailable (insufficient privilege?), skipping: {}", e.toString());
+            log.warn("data_lock_waits query failed, skipping lock waits: {}", e.toString());
             return List.of();
         }
     }

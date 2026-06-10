@@ -2,8 +2,8 @@
 #   mvn -pl faultpilot-server spring-boot:run \
 #     --spring.config.additional-location=file:examples/mysql-local/application.yml
 #
-# Requires the MySQL JDBC driver on the classpath (add com.mysql:mysql-connector-j; FaultPilot
-# bundles only H2). Point url/credentials at the read-only account from readonly-account.sql.
+# The MySQL JDBC driver ships with faultpilot-server — nothing to add.
+# Point url/credentials at the read-only account from readonly-account.sql.
 faultpilot:
   mode: mock
   ai:
