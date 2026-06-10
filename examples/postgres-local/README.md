@@ -28,10 +28,8 @@ psql -U postgres -d app -f examples/postgres-local/readonly-account.sql
 #    add 'pg_stat_statements' to shared_preload_libraries, restart, then:
 #    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 
-# 3. Add the PostgreSQL JDBC driver to the classpath (FaultPilot bundles only H2):
-#    org.postgresql:postgresql
-
-# 4. Point FaultPilot at the read-only role and run.
+# 3. Point FaultPilot at the read-only role and run.
+#    (The PostgreSQL JDBC driver ships with faultpilot-server — nothing to add.)
 export FAULTPILOT_PG_URL=jdbc:postgresql://localhost:5432/app
 export FAULTPILOT_PG_USER=faultpilot_ro
 export FAULTPILOT_PG_PASSWORD=change-me

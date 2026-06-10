@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JdbcDiagnosisRepositoryTest {
 
+    private JdbcTemplate jdbc;
     private JdbcDiagnosisRepository repository;
 
     @BeforeEach
@@ -30,7 +31,8 @@ class JdbcDiagnosisRepositoryTest {
                 .setName("diagrepo-" + java.util.UUID.randomUUID())
                 .addScript("schema.sql")
                 .build();
-        repository = new JdbcDiagnosisRepository(new JdbcTemplate(db),
+        jdbc = new JdbcTemplate(db);
+        repository = new JdbcDiagnosisRepository(jdbc,
                 new ObjectMapper().registerModule(new JavaTimeModule()));
     }
 
@@ -106,6 +108,19 @@ class JdbcDiagnosisRepositoryTest {
         }
 
         assertThat(repository.list(null, null, 2)).hasSize(2);
+    }
+
+    @Test
+    void listSkipsCorruptRowInsteadOfFailing() {
+        repository.save(report("good", "order-service", "local", "fine", Instant.parse("2026-06-01T01:00:00Z")));
+        jdbc.update("INSERT INTO diagnosis_report (id, project_id, environment, created_at, report_json)"
+                        + " VALUES (?, ?, ?, ?, ?)",
+                "corrupt", "order-service", "local",
+                java.sql.Timestamp.from(Instant.parse("2026-06-01T02:00:00Z")), "{not valid json");
+
+        List<ReportSummary> list = repository.list(null, null, 10);
+
+        assertThat(list).extracting(ReportSummary::diagnosisId).containsExactly("good");
     }
 
     private DiagnosisReport report(String id, String projectId, String environment, String summary, Instant createdAt) {

@@ -181,7 +181,7 @@ project for read-only DB analysis: logs and database are additive, not either/or
 | Integration | Prepare on the monitored app | Required fields | Notes |
 | --- | --- | --- | --- |
 | **Local log files** ([example](../../examples/local-file/README.md)) | A readable log file on the FaultPilot host | `logs.type: local-file`, `logs.paths` | The default parser reads the Spring Boot console format; set `logs.pattern` only for other layouts. Only `WARN`/`ERROR` lines are analyzed. |
-| **JDBC log table** ([example](../../examples/jdbc-log-table/README.md)) | A **read-only** DB view with columns `occurred_at, level, trace_id, message, stack_trace` | `logs.type: jdbc`, `logs.url`, `logs.username`, `logs.password`, `logs.view` | Add your DB's JDBC driver to the classpath (only H2 is bundled). |
+| **JDBC log table** ([example](../../examples/jdbc-log-table/README.md)) | A **read-only** DB view with columns `occurred_at, level, trace_id, message, stack_trace` | `logs.type: jdbc`, `logs.url`, `logs.username`, `logs.password`, `logs.view` | MySQL/PostgreSQL drivers ship with the server; for other databases add the JDBC driver to the classpath. |
 | **Read-only database** ([MySQL](../../examples/mysql-local/README.md) / [PostgreSQL](../../examples/postgres-local/README.md)) | A dedicated **read-only** MySQL/PostgreSQL account | `database.type` (`mysql`\|`postgres`), `database.url`, `database.username`, `database.password` | Connection / long-transaction / lock-wait snapshots and slow-SQL summaries via built-in fixed SQL. Keep slow-query statistics enabled for slow-SQL summaries. |
 
 Example: one project that reads local log files **and** a read-only MySQL database. Credentials use
