@@ -9,6 +9,10 @@ target/
 .codegraph/
 data/
 
+# Local-only Spring config (real hosts/credentials for local testing). Kept outside
+# src/main/resources so it never lands in the packaged jar either.
+config/
+
 # Internal planning artifacts not published in the documentation release.
 tasks/
 tools/
