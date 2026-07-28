@@ -126,6 +126,11 @@ directory is git-ignored and never published.
 The console's **Recent Diagnoses** panel lists stored reports (newest first); click a row to reopen
 its full report. The same data is available via `GET /api/v1/diagnoses?projectId=&environment=&limit=`.
 
+For local experiments that need real hosts or credentials, put them in
+`config/application-local.yml` (git-ignored, and outside `src/main/resources` so it never lands in
+the packaged jar) and start with `--spring.profiles.active=local`. Never put real credentials in
+`application.yml`.
+
 Stop the foreground server with `Ctrl+C`.
 
 ## AI Providers

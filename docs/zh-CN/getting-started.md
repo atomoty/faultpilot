@@ -120,6 +120,8 @@ curl -X POST http://localhost:8080/api/v1/diagnoses \
 
 控制台的 **Recent Diagnoses（最近诊断）** 面板会列出已存报告（按时间倒序），点击某行可重新打开其完整报告。同样的数据也可通过 `GET /api/v1/diagnoses?projectId=&environment=&limit=` 获取。
 
+若本地调试需要真实地址或凭据，请写在 `config/application-local.yml`（已被 git 忽略，且位于 `src/main/resources` 之外，不会打进 jar），启动时加 `--spring.profiles.active=local`。切勿把真实凭据写进 `application.yml`。
+
 前台运行时，使用 `Ctrl+C` 停止服务。
 
 ## AI 提供方
