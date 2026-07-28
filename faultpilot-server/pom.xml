@@ -67,6 +67,33 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!--
+          Quality evaluation against a REAL AI provider. Excluded from the normal build because it
+          costs money, needs network and an API key, and its result depends on the model rather than
+          on this repository's code. Run it deliberately after changing the prompt:
+
+            export FAULTPILOT_AI_PROVIDER=openai-api OPENAI_API_KEY=sk-... OPENAI_MODEL=gpt-4o-mini
+            mvn -pl faultpilot-server -am verify -Peval
+        -->
+        <profile>
+            <id>eval</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/*Eval.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>

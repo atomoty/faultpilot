@@ -171,8 +171,24 @@ the request never fails. (A flag such as `--faultpilot.ai.provider=...` still ov
   reads, copies, or logs Codex credential files. **Do not enable `codex-cli` for online
   deployments** — use `openai-api` with a key there.
 
-The model only ever receives the already-sanitized evidence context, and root-cause strength is
-computed by rules, not the model.
+The model only ever receives the already-sanitized evidence context. Rules stay authoritative: they
+decide which root-cause candidates exist, with what evidence and what strength — the model
+contributes the summary and the per-candidate explanation, and cannot add or remove a finding.
+
+### Evaluating answer quality
+
+Prompt changes are otherwise unmeasurable, so the repository ships an evaluation that runs the
+built-in scenarios (which have known-correct answers) against a **real** provider and grades each
+report: right root cause, required evidence cited, no invented evidence ids, no fallback. It calls
+a paid API, so it is excluded from the normal build and runs only under the `eval` profile:
+
+```bash
+export FAULTPILOT_AI_PROVIDER=openai-api OPENAI_API_KEY=sk-... OPENAI_MODEL=gpt-4o-mini
+mvn -pl faultpilot-server -am verify -Peval
+```
+
+A score card is printed per scenario and the run fails if any scenario is diagnosed wrongly. Run it
+after changing the prompt to see whether quality moved.
 
 ## Connect a Java Application
 
