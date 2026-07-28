@@ -26,7 +26,10 @@ public final class OutputSchema {
                     "additionalProperties": false,
                     "required": ["label", "title", "explanation", "evidenceIds"],
                     "properties": {
-                      "label": { "type": "string" },
+                      "label": {
+                        "type": "string",
+                        "description": "Copy verbatim from a ruleCandidates[].label in the input. Candidates with any other label are discarded."
+                      },
                       "title": { "type": "string" },
                       "explanation": { "type": "string" },
                       "evidenceIds": { "type": "array", "items": { "type": "string" } }

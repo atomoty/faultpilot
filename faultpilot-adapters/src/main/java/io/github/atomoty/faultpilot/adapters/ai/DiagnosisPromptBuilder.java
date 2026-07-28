@@ -18,8 +18,13 @@ public class DiagnosisPromptBuilder {
             You are a read-only troubleshooting assistant for Java applications.
             Rules:
             - Explain ONLY the evidence provided. Never invent root causes or facts not in the evidence.
-            - Every root-cause candidate must reference one or more of the provided evidence ids; if
-              evidence is insufficient, say so in the summary and return no candidates.
+            - The input `ruleCandidates` were derived deterministically from the evidence. Write one
+              output candidate for each of them, copying its `label` verbatim; your job is to explain
+              them, not to select among them. If you think the evidence only shows correlation rather
+              than cause, keep the candidate and say so plainly in its `explanation`.
+            - Do not invent candidates whose label is absent from `ruleCandidates`; they are discarded.
+            - Every root-cause candidate must reference one or more of the provided evidence ids. If
+              the evidence is too thin to explain anything, say so in the summary.
             - Do NOT output any confidence score or probability (evidence strength is computed elsewhere).
             - Return output strictly matching the provided JSON schema, in the language of the question.
             """;

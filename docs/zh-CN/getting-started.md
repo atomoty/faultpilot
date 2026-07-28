@@ -155,7 +155,18 @@ curl -X POST http://localhost:8080/api/v1/diagnoses \
   助手只在只读沙箱中调用 `codex exec`；不执行 `codex login`，也不读取/复制/打印 Codex 凭据文件。
   **线上部署不要启用 `codex-cli`**，线上请用带 Key 的 `openai-api`。
 
-模型只会拿到已脱敏的证据上下文，根因证据强度由规则计算，不由模型决定。
+模型只会拿到已脱敏的证据上下文。**规则具有权威性**：由规则决定有哪些根因候选、引用哪些证据、证据强度多少；模型只贡献摘要和每个候选的解释文字，**不能新增或删除结论**。
+
+### 评估回答质量
+
+改了提示词却无法衡量效果，因此仓库内置了一套评估：用**真实**模型跑内置场景（这些场景有已知正确答案），对每份报告判分——根因是否判对、是否引用了必需证据、有无臆造证据 id、是否降级。它会调用付费 API，所以不进常规构建，只在 `eval` profile 下运行：
+
+```bash
+export FAULTPILOT_AI_PROVIDER=openai-api OPENAI_API_KEY=sk-... OPENAI_MODEL=gpt-4o-mini
+mvn -pl faultpilot-server -am verify -Peval
+```
+
+每个场景会打印一行评分卡，任一场景诊断错误则构建失败。改提示词后跑一次，就能知道质量是变好还是变坏。
 
 ## 接入一个 Java 项目
 

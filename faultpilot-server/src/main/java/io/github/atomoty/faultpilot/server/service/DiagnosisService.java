@@ -177,22 +177,33 @@ public class DiagnosisService {
         }
     }
 
-    /** Keep only model candidates that match a rule candidate (by label) and stamp rule strength. */
+    /**
+     * Rule candidates are authoritative: the rules decide which root causes exist, with what
+     * strength and on what evidence. The model only contributes prose — where it explained a rule
+     * candidate we use its explanation, otherwise the rule's own wording stands.
+     *
+     * <p>Driving the loop from the rule candidates (rather than the model's) means a cautious model
+     * that returns no candidates, or one that renames a label, can no longer silently delete a
+     * finding the rules made from real evidence. Candidates the model invents are still ignored,
+     * and a rule candidate with no evidence is still dropped (specification.md §11).
+     */
     private DiagnosisReport assemble(String diagnosisId, DiagnosisContext context,
                                      ModelOutput output, List<Evidence> evidence) {
-        Map<String, RootCauseCandidate> ruleByLabel = new LinkedHashMap<>();
-        for (RootCauseCandidate rc : context.ruleCandidates()) {
-            ruleByLabel.put(rc.label(), rc);
+        Map<String, String> explanationByLabel = new LinkedHashMap<>();
+        for (ModelOutput.Candidate c : output.rootCauseCandidates()) {
+            if (c.label() != null && c.explanation() != null && !c.explanation().isBlank()) {
+                explanationByLabel.putIfAbsent(c.label(), c.explanation());
+            }
         }
 
         List<RootCauseCandidate> accepted = new ArrayList<>();
-        for (ModelOutput.Candidate c : output.rootCauseCandidates()) {
-            RootCauseCandidate rule = ruleByLabel.get(c.label());
-            if (rule == null || rule.evidenceIds().isEmpty()) {
-                continue; // no rule backing / no evidence → drop (specification.md §11)
+        for (RootCauseCandidate rule : context.ruleCandidates()) {
+            if (rule.evidenceIds().isEmpty()) {
+                continue; // no evidence → drop (specification.md §11)
             }
+            String explanation = explanationByLabel.getOrDefault(rule.label(), rule.explanation());
             accepted.add(new RootCauseCandidate(
-                    rule.label(), rule.title(), c.explanation(), rule.strength(), rule.evidenceIds()));
+                    rule.label(), rule.title(), explanation, rule.strength(), rule.evidenceIds()));
         }
 
         return new DiagnosisReport(
